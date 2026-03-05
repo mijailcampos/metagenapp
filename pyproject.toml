@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "metagenapp"
+version = "0.1"
+description = "MetagenApp metabarcoding pipeline"
+authors = [{name="Mijail Campos"}]
+readme = "README.md"
+requires-python = ">=3.9"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["metagenapp*", "metagenapp_core*"]
