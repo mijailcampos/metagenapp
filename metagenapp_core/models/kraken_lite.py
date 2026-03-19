@@ -2,11 +2,14 @@ MODEL_NAME = "kraken_lite"
 MODEL_TYPE = "taxonomy_classifier"
 
 from multiprocessing import Pool
+import re
 
 from metagenapp_core.models.kraken_lite_engine import classify_seq_kraken
 from metagenapp_core.models.kraken_minimizer_engine import classify_seq_minimizer
 
 MODEL = None
+
+DNA_RE = re.compile("[^ACGT]")
 
 
 def init_worker(model):
@@ -18,6 +21,8 @@ def init_worker(model):
 def _worker(args):
 
     sid, seq = args
+
+    seq = DNA_RE.sub("", seq.upper())
 
     if "minimizer_index" in MODEL:
         return classify_seq_minimizer(sid, seq, MODEL)

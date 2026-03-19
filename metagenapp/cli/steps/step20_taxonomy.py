@@ -1,16 +1,19 @@
 import os
+
 from metagenapp.pipeline.clasificacion_tax import classify_naive_por_bloques
+from metagenapp.metagen_config import NAIVE_MODEL_PATH
 
 
 def run(
     fasta_input,
     count_input,
     outdir,
-    model_path="modelos/naive_model.pkl",
+    model_path=NAIVE_MODEL_PATH,
     block_size=10000,
     n_threads=8
 ):
     try:
+
         output_taxonomy = os.path.join(outdir, "classification.taxonomy")
 
         taxonomy_path, msg = classify_naive_por_bloques(
@@ -29,5 +32,5 @@ def run(
             "message": msg or "Naive Bayes classification completed successfully."
         }
 
-    except Exception:
-        raise
+    except Exception as e:
+        raise RuntimeError(f"Taxonomy classification failed: {e}")

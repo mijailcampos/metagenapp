@@ -6,12 +6,7 @@ from metagenapp_core.utils.taxonomy import lca_taxa
 MODEL_NAME = "kraken_lite"
 MODEL_TYPE = "taxonomy_classifier"
 
-# Threshold más estricto: exige más consenso antes de clasificar
-CONFIDENCE_THRESHOLD = 0.30
-
-# Threshold mínimo para LCA fallback
-LCA_MIN_FRACTION = 0.05
-
+CONFIDENCE_THRESHOLD = 0.15
 MAX_LCA_HITS = 10
 
 
@@ -38,7 +33,7 @@ def classify_seq_kraken(seq_id, seq, model):
 
     k = model["k"]
     kmer_index = model["kmer_index"]
-    taxonomy = model["taxonomy"]  # lista, no dict
+    taxonomy = model["taxonomy"]  # ← lista, no dict
 
     votes = {}
 
@@ -80,24 +75,10 @@ def classify_seq_kraken(seq_id, seq, model):
     sorted_votes = sorted(votes.items(), key=lambda x: x[1], reverse=True)
 
     # ============================================================
-    # 3. majority vote jerárquico — de específico a general
-    #
-    # Estrategia: intentar resolver primero al nivel más específico
-    # (Orden → Clase → Phylum). Si hay consenso fuerte en Orden,
-    # retornar ese resultado. Si no, subir un nivel.
-    # Esto evita que phyla grandes (Pseudomonadota) ganen por tener
-    # más referencias en el índice.
+    # 3. majority vote jerárquico
     # ============================================================
 
-    # level_idx: índice en el array de partes de la taxonomía
-    #   4 = Orden (Bacteria;Phylum;Clase;Orden)
-    #   3 = Clase (Bacteria;Phylum;Clase)
-    #   2 = Phylum (Bacteria;Phylum)
-    taxonomic_levels = [4, 3, 2]
-
-    best_tax = None
-    best_conf = 0.0
-    best_level = None
+    taxonomic_levels = [2, 3, 4]
 
     for level_idx in taxonomic_levels:
 
@@ -126,47 +107,33 @@ def classify_seq_kraken(seq_id, seq, model):
 
         total_votes = sum(level_votes.values())
         top_tax, top_count = level_votes.most_common(1)[0]
+
         confidence = top_count / total_votes
 
-        # Guardar el mejor resultado encontrado hasta ahora
-        if confidence > best_conf:
-            best_conf = confidence
-            best_tax = top_tax
-            best_level = level_idx
-
-        # Si hay consenso fuerte en este nivel, retornar
         if confidence >= CONFIDENCE_THRESHOLD:
 
             if not top_tax or top_tax.strip() == "" or top_tax.strip() == ";":
-                continue  # no retornar Unclassified aquí, intentar nivel superior
+                return seq_id, "Unclassified"
 
             parts = [p for p in top_tax.split(";") if p]
 
+            # si solo tiene dominio → no confiable
             if len(parts) <= 1:
-                continue  # solo dominio, subir un nivel
+                return seq_id, "Unclassified"
 
             return seq_id, top_tax
 
     # ============================================================
-    # 4. fallback: si ningún nivel alcanzó el threshold pero hay
-    #    un resultado con confianza razonable (>= 0.20), usarlo
-    # ============================================================
-
-    if best_tax and best_conf >= 0.20:
-        parts = [p for p in best_tax.split(";") if p]
-        if len(parts) > 1:
-            return seq_id, best_tax
-
-    # ============================================================
-    # 5. fallback LCA para secuencias genuinamente ambiguas
+    # 4. fallback LCA
     # ============================================================
 
     top_taxa = [
         taxonomy[taxid] if taxid < len(taxonomy) else ""
         for taxid, count in sorted_votes[:MAX_LCA_HITS]
-        if count / total_vote_sum >= LCA_MIN_FRACTION
+        if count / total_vote_sum >= 0.05
     ]
 
+    # limpiar vacíos
     top_taxa = [t for t in top_taxa if t and t.strip() and t.strip() != ";"]
 
     if not top_taxa:

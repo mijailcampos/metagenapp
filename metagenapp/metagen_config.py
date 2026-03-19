@@ -39,8 +39,13 @@ METAGEN_REFS = REFERENCE_ROOT / "metagenapp_refs"
 
 REF_16S_ROOT = METAGEN_REFS / "16S"
 
-NAIVE_MODEL_PATH = "/data/projects/metagenapp-cli/modelos/naive_model.pkl"
-KRAKEN_INDEX_PATH = REF_16S_ROOT / "kraken_index.pkl"
+NAIVE_MODEL_PATH = "/data/databases/metagenapp_refs/16S/naive_model_v4.pkl"
+
+# Índice kraken-lite — SILVA 138.2 NR99 Bacteria+Archaea (451k seqs, 83k taxa)
+KRAKEN_INDEX_PATH = REF_16S_ROOT / "kraken_index_silva.pkl"
+
+# Índice anterior (V4 only, ~7500 taxa) — backup
+# KRAKEN_INDEX_PATH = REF_16S_ROOT / "kraken_index_v4.pkl"
 
 HIERARCHY_ROOT_16S = REF_16S_ROOT / "hierarchy"
 PHYLUM_MODEL_PATH = HIERARCHY_ROOT_16S / "model_phylum_k7_opt.joblib"

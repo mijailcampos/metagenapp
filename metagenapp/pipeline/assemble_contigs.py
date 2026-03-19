@@ -1,3 +1,4 @@
+import subprocess
 import os
 from collections import defaultdict
 from Bio import SeqIO
@@ -5,9 +6,6 @@ from pathlib import Path
 
 from metagenapp.pipeline.step_tracker import start_step, end_step
 
-# --------------------------------------------------
-# Optional Streamlit support (GUI-safe / CLI-safe)
-# --------------------------------------------------
 try:
     import streamlit as st
     STREAMLIT_AVAILABLE = True
@@ -15,9 +13,6 @@ except ImportError:
     STREAMLIT_AVAILABLE = False
 
 
-# ==================================================
-#   CORE FUNCTION (GUI + CLI)
-# ==================================================
 def assemble_contigs(
     files_path,
     input_dir,
@@ -25,35 +20,29 @@ def assemble_contigs(
     output_count,
 ):
     """
-    Assemble contigs from paired-end FASTQ files (R1/R2)
-    using simple concatenation:
-        read1 + reverse_complement(read2)
-
-    Parameters
-    ----------
-    files_path : str or Path
-        Path to input_samples.files
-    input_dir : str or Path
-        Directory containing FASTQ files
-    output_fasta : str or Path
-        Output FASTA path
-    output_count : str or Path
-        Output count table path
-
-    Returns
-    -------
-    output_fasta, error
+    Assemble contigs from paired-end FASTQ files using VSEARCH mergepairs.
+    Produces merged FASTQ, converts to FASTA, and generates count_table.
     """
+
+    print("🧬 MetagenApp pipeline started", flush=True)
 
     files_path = Path(files_path)
     input_dir = Path(input_dir)
     output_fasta = Path(output_fasta)
     output_count = Path(output_count)
 
+    print(f"📂 Input directory: {input_dir}", flush=True)
+    print(f"📄 Files list: {files_path}", flush=True)
+    print(f"📤 Output FASTA: {output_fasta}", flush=True)
+    print(f"📤 Output count table: {output_count}", flush=True)
+
     if not files_path.exists():
         return None, f"File not found: {files_path}"
 
     count_table_data = defaultdict(lambda: defaultdict(int))
+    merged_fastqs = []
+
+    print("🔬 Starting VSEARCH mergepairs...", flush=True)
 
     try:
         with open(files_path) as f:
@@ -64,30 +53,66 @@ def assemble_contigs(
                 r2_path = input_dir / r2_file
 
                 if not r1_path.exists() or not r2_path.exists():
-                    print(f"[WARNING] Missing FASTQ for {sample}")
+                    print(f"[WARNING] Missing FASTQ for {sample}", flush=True)
                     continue
 
-                r1_reads = SeqIO.parse(r1_path, "fastq")
-                r2_reads = SeqIO.parse(r2_path, "fastq")
+                merged_fastq = output_fasta.parent / f"{sample}_merged.fastq"
 
-                for read1, read2 in zip(r1_reads, r2_reads):
-                    contig_seq = str(
-                        read1.seq + read2.seq.reverse_complement()
-                    )
-                    count_table_data[contig_seq][sample] += 1
+                print(f"   ↳ Merging sample: {sample}", flush=True)
+
+                cmd = [
+                    "vsearch",
+                    "--fastq_mergepairs", str(r1_path),
+                    "--reverse", str(r2_path),
+                    "--fastqout", str(merged_fastq),
+                    "--fastq_minovlen", "20",
+                    "--fastq_maxdiffs", "5",
+                ]
+
+                subprocess.run(cmd, check=True)
+
+                merged_fastqs.append((sample, merged_fastq))
 
     except Exception as e:
-        return None, f"Error processing FASTQ files: {e}"
+        return None, f"Error during VSEARCH mergepairs: {e}"
 
-    # Ensure output directory exists
+    print(f"✔ VSEARCH merging finished ({len(merged_fastqs)} samples)", flush=True)
+
+    print("📦 Parsing merged FASTQ files...", flush=True)
+
+    try:
+        for i, (sample, merged_fastq) in enumerate(merged_fastqs, start=1):
+
+            print(f"   ↳ Reading {merged_fastq.name} ({i}/{len(merged_fastqs)})", flush=True)
+
+            seq_counter = 0
+
+            for record in SeqIO.parse(merged_fastq, "fastq"):
+                seq = str(record.seq)
+                count_table_data[seq][sample] += 1
+                seq_counter += 1
+
+            print(f"      {seq_counter} reads processed", flush=True)
+
+    except Exception as e:
+        return None, f"Error parsing merged FASTQ: {e}"
+
+    print("✔ FASTQ parsing finished", flush=True)
+
     output_fasta.parent.mkdir(parents=True, exist_ok=True)
 
-    # Consistent sample order
+    print("🧮 Building count table...", flush=True)
+
     all_samples = sorted({
         sample
         for seq_counts in count_table_data.values()
         for sample in seq_counts
     })
+
+    print(f"✔ Total unique sequences: {len(count_table_data)}", flush=True)
+    print(f"✔ Total samples detected: {len(all_samples)}", flush=True)
+
+    print("💾 Writing assembled FASTA and count table...", flush=True)
 
     with open(output_fasta, "w") as f_out, open(output_count, "w") as f_count:
 
@@ -95,56 +120,15 @@ def assemble_contigs(
 
         for i, (seq, sample_counts) in enumerate(count_table_data.items(), start=1):
             contig_id = f"contig_{i}"
+
             f_out.write(f">{contig_id}\n{seq}\n")
 
             row = [str(int(sample_counts.get(s, 0))) for s in all_samples]
             f_count.write(f"{contig_id}\t" + "\t".join(row) + "\n")
 
+            if i % 1000 == 0:
+                print(f"   ↳ {i} contigs written", flush=True)
+
+    print("✔ Assemble contigs finished", flush=True)
+
     return output_fasta, None
-
-
-# ==================================================
-#   STREAMLIT WRAPPER (GUI ONLY)
-# ==================================================
-def run_assemble_contigs():
-    """
-    Streamlit wrapper for assemble_contigs().
-    Not used by CLI.
-    """
-
-    if not STREAMLIT_AVAILABLE:
-        raise RuntimeError("run_assemble_contigs() requires Streamlit")
-
-    st.subheader("Assembling contigs")
-
-    start_step("01_Assemble_contigs")
-
-    # GUI paths (legacy behavior)
-    input_dir = Path("user_data/inputs")
-    files_path = input_dir / "input_samples.files"
-    output_fasta = Path("user_data/outputs/assembled_contigs.fasta")
-    output_count = Path("user_data/outputs/assembled_contigs.count_table")
-
-    with st.spinner("Processing R1/R2 pairs and building contigs..."):
-        output, error = assemble_contigs(
-            files_path=files_path,
-            input_dir=input_dir,
-            output_fasta=output_fasta,
-            output_count=output_count,
-        )
-
-    if output:
-        end_step(success=True)
-
-        st.success("Contigs assembled successfully.")
-        st.code(f"FASTA: {output_fasta}\nCOUNT TABLE: {output_count}")
-
-        try:
-            with open(output_fasta) as f:
-                preview = "".join(f.readlines()[:10])
-                st.text_area("FASTA preview:", preview, height=200)
-        except Exception:
-            pass
-    else:
-        end_step(success=False)
-        st.error(f"Error assembling contigs:\n{error}")

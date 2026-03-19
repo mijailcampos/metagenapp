@@ -3,7 +3,8 @@ from pathlib import Path
 from metagenapp.metagen_config import (
     PR2_REFERENCE,
     SILVA_REFERENCE_RAW,
-    SILVA_REFERENCE_ALN
+    SILVA_REFERENCE_ALN,
+    NAIVE_MODEL_PATH
 )
 
 # ===============================
@@ -106,13 +107,6 @@ def run_pipeline(
     def should_run(step_name: str) -> bool:
         return PIPELINE_STEPS.index(step_name) >= start_index
 
-    # ============================================================
-    # Alignment strategy based on mode
-    # ============================================================
-    if mode == "ref":
-        align_target = "reference"
-    else:
-        align_target = "centroids"
 
     # ============================================================
     # Reference selection (RAW vs ALIGNED)
@@ -274,7 +268,7 @@ def run_pipeline(
 
     # ============================================================
     # Step 05 — Trim
-    # ===================================================s=========
+    # ============================================================
     if should_run("09_Trim_vsearch"):
         start_step("09_Trim_vsearch")
         try:
@@ -350,103 +344,25 @@ def run_pipeline(
         label = f"{n_centroids} centroides" if n_centroids else "ALL centroides"
         print(f"✔ Centroid extraction finished ({label})")
 
-    if should_run("12_MAFFT_Alignment"):
-        print(f"🧪 MAFFT will run in mode={mode}")
+        # default path for downstream steps
+        nonchimera_fasta = centroid_fasta
+        nonchimera_count = unique_count
+
+        if classifier == "kraken-lite":
+            preclustered_fasta = centroid_fasta
+            preclustered_count = unique_count
 
 
     
 
 
-    # ============================================================
-    # Step 14 — MAFFT positional filter
-    # ============================================================
-    if mode != "ref" and should_run("14_MAFFT_Filter"):
-        start_step("14_MAFFT_Filter")
-
-        filtered_mafft = outdir / "aligned_mafft_filtered.fasta"
-
-        try:
-
-            print("⚙️ Using default positional window (50–650)")
-
-            out, retained, total, msg = filtrar_mafft_por_posicion(
-                fasta_path=aligned_mafft,
-                output_path=filtered_mafft,
-                start=50,
-                end=650,
-                count_table_path=None,
-                output_count_path=None
-            )
-
-            filtered_mafft = Path(filtered_mafft)
-
-            if not out or retained == 0 or not filtered_mafft.exists():
-                raise RuntimeError("MAFFT positional filter removed ALL centroides")
-
-            print("✔ MAFFT positional filtering finished")
-            print(msg)
-
-            end_step(success=True)
-
-        except Exception as e:
-            end_step(success=False)
-            raise RuntimeError(f"MAFFT positional filtering failed: {e}")
 
     # ============================================================
-    # Step 10 — Filter columns (mafft)
+    # Step 12 — Alignment (MAFFT or REF engine)
     # ============================================================
-    # fallback si no se corrió el filtro posicional
-    
-    filtered_mafft = outdir / "aligned_mafft_filtered.fasta"
-    filtered_mafft = Path(filtered_mafft)
-    
-    if not filtered_mafft.exists():
-        filtered_mafft = aligned_mafft
 
-    if mode != "ref" and should_run("15_Filter_Columns"):
-        start_step("15_Filter_Columns")
-        try:
-            result = run_step15(
-                fasta_input=filtered_mafft,
-                outdir=outdir,
-                vertical=True,
-                trump="."
-            )
-            column_filtered_alignment = Path(result["output_fasta"])
-        except Exception:
-            end_step(success=False)
-            raise
+    if classifier != "kraken-lite" and should_run("12_MAFFT_Alignment"):
 
-        end_step(success=True)
-        print("✔ Filter alignment columns finished")
-
-    # ============================================================
-    # Step 11 — Unique MAFFT
-    # ============================================================
-    if mode != "ref" and not column_filtered_alignment.exists():
-        raise RuntimeError("Column-filtered alignment missing before Unique MAFFT")
-
-    if mode != "ref" and should_run("16_Unique_MAFFT"):
-        start_step("16_Unique_MAFFT")
-        try:
-            result = run_step16(
-                fasta_input=column_filtered_alignment,
-                outdir=outdir
-            )
-            unique_mafft_fasta = Path(result["fasta"])
-            unique_mafft_count = filtered_count  # hereda count_table
-        except Exception:
-            end_step(success=False)
-            raise
-
-        end_step(success=True)
-        print("✔ Unique MAFFT sequences generated")
-        print(f"  Total unique sequences: {result['n_unique']}")
-
-    # ============================================================
-    # Step 12 — REF Professional Engine
-    # ============================================================
-    if should_run("12_MAFFT_Alignment"):
         start_step("12_MAFFT_Alignment")
 
         try:
@@ -469,7 +385,8 @@ def run_pipeline(
 
             else:
 
-                # modo clásico MAFFT
+                print("🧪 Running MAFFT alignment")
+
                 aligned_path, msg = align_with_mafft(
                     input_path=centroid_fasta,
                     output_path=aligned_mafft,
@@ -492,42 +409,153 @@ def run_pipeline(
 
         end_step(success=True)
         print("✔ Alignment step finished")
-        # ------------------------------------------------------------
-        # REF mode: skip chimera → use centroids directly
-        # ------------------------------------------------------------
-        if mode == "ref":
-            nonchimera_fasta = centroid_fasta
-            nonchimera_count = unique_count
+
+    else:
+        print("⚡ Kraken-lite mode: skipping MAFFT alignment pipeline")
+
+    # ============================================================
+    # Step 14 — MAFFT positional filter
+    # ============================================================
+    if classifier != "kraken-lite" and mode != "ref" and should_run("14_MAFFT_Filter"):
+        start_step("14_MAFFT_Filter")
+
+        filtered_mafft = outdir / "aligned_mafft_filtered.fasta"
+
+        try:
+
+            # ----------------------------------------------------
+            # Detectar longitud del alineamiento
+            # ----------------------------------------------------
+            from Bio import SeqIO
+
+            with open(aligned_mafft) as f:
+                first_seq = next(SeqIO.parse(f, "fasta"))
+                aln_len = len(first_seq.seq)
+
+            # ----------------------------------------------------
+            # Ventana adaptativa
+            # ----------------------------------------------------
+            start = max(10, int(aln_len * 0.05))
+            end = int(aln_len * 0.95)
+
+            print(f"⚙️ Adaptive positional window ({start}–{end}) for alignment length {aln_len}")
+
+            out, retained, total, msg = filtrar_mafft_por_posicion(
+                fasta_path=aligned_mafft,
+                output_path=filtered_mafft,
+                start=start,
+                end=end,
+                count_table_path=None,
+                output_count_path=None
+            )
+
+            filtered_mafft = Path(filtered_mafft)
+
+            # ----------------------------------------------------
+            # Protección: evitar eliminar todo
+            # ----------------------------------------------------
+            if retained == 0 or not filtered_mafft.exists():
+                print("⚠️ Positional filter removed all sequences — reverting to original alignment")
+                filtered_mafft = aligned_mafft
+                retained = total
+
+            print("✔ MAFFT positional filtering finished")
+            print(msg)
+
+            end_step(success=True)
+
+        except Exception as e:
+            end_step(success=False)
+            raise RuntimeError(f"MAFFT positional filtering failed: {e}")
+
+    # ============================================================
+    # Step 10 — Filter columns (mafft)
+    # ============================================================
+    # fallback si no se corrió el filtro posicional
+    
+    filtered_mafft = outdir / "aligned_mafft_filtered.fasta"
+    filtered_mafft = Path(filtered_mafft)
+    
+    if not filtered_mafft.exists():
+        filtered_mafft = aligned_mafft
+
+    if classifier != "kraken-lite" and mode != "ref" and should_run("15_Filter_Columns"):
+        start_step("15_Filter_Columns")
+        try:
+            result = run_step15(
+                fasta_input=filtered_mafft,
+                outdir=outdir,
+                vertical=True,
+                trump="."
+            )
+            column_filtered_alignment = Path(result["output_fasta"])
+        except Exception:
+            end_step(success=False)
+            raise
+
+        end_step(success=True)
+        print("✔ Filter alignment columns finished")
+
+    # ============================================================
+    # Step 16 — Unique MAFFT
+    # ============================================================
+    if classifier != "kraken-lite" and mode != "ref" and not column_filtered_alignment.exists():
+        raise RuntimeError("Column-filtered alignment missing before Unique MAFFT")
+
+    if classifier != "kraken-lite" and mode != "ref" and should_run("16_Unique_MAFFT"):
+        start_step("16_Unique_MAFFT")
+        try:
+            result = run_step16(
+                fasta_input=column_filtered_alignment,
+                outdir=outdir
+            )
+            unique_mafft_fasta = Path(result["fasta"])
+            unique_mafft_count = filtered_count  # hereda count_table
+        except Exception:
+            end_step(success=False)
+            raise
+
+        end_step(success=True)
+        print("✔ Unique MAFFT sequences generated")
+        print(f"  Total unique sequences: {result['n_unique']}")
+
 
     # ============================================================
     # Step 13 — Chimera detection
     # ============================================================
-    if mode == "ref":
+
+    if classifier == "kraken-lite":
+        print("⚡ Kraken-lite mode: skipping Chimera detection (alignment not required)")
+
+    elif mode == "ref":
         print("⏭ Skipping Chimera Detection in REF mode (professional engine active)")
-    elif should_run("18_ChimeraDetection"):
-        start_step("18_ChimeraDetection")
-        try:
-            result = run_step18(
-                fasta_input=preclustered_fasta,
-                count_input=preclustered_count,
-                outdir=outdir
-            )
-            nonchimera_fasta = Path(result["fasta"])
-            nonchimera_count = Path(result["count"])
-        except Exception:
-            end_step(success=False)
-            raise
-        end_step(success=True)
-        print("✔ Chimera detection completed successfully")
 
-    # REF mode uses centroids directly
-    if mode == "ref":
-        if not centroid_fasta.exists():
-            raise RuntimeError("Centroid FASTA missing for REF mode")
+    else:
 
-        nonchimera_fasta = centroid_fasta
-        nonchimera_count = unique_count   
+        if should_run("18_ChimeraDetection"):
 
+            start_step("18_ChimeraDetection")
+
+            try:
+
+                result = run_step18(
+                    fasta_input=unique_mafft_fasta,
+                    count_input=unique_mafft_count,
+                    outdir=outdir
+                )
+
+                nonchimera_fasta = Path(result["fasta"])
+                nonchimera_count = Path(result["count"]) if result["count"] else None
+
+                print("✔ Chimera detection completed successfully")
+
+                end_step(success=True)
+
+            except Exception as e:
+
+                end_step(success=False)
+                raise RuntimeError(str(e))
+            
     # ============================================================
     # Step 20 — Taxonomic classification
     # ============================================================
@@ -539,27 +567,30 @@ def run_pipeline(
 
             taxonomy_file = outdir / "classification.taxonomy"
 
+            # ----------------------------------------------------
+            # FLAT (simple taxonomy assigner)
+            # ----------------------------------------------------
             if classifier == "flat":
 
-                print("🚀 Kraken-lite classifier activated")
+                print("🧠 Naive Bayes classifier activated")
 
-                from metagenapp_core.models.kraken_lite import classify_kraken_parallel
-                from metagenapp.metagen_config import KRAKEN_INDEX_PATH
-                import pickle
+                from metagenapp.pipeline.clasificacion_tax import classify_naive_por_bloques
 
-                with open(KRAKEN_INDEX_PATH, "rb") as f:
-                    kraken_model = pickle.load(f)
 
-                classify_kraken_parallel(
-                    fasta_path=nonchimera_fasta,
+                classify_naive_por_bloques(
+                    fasta_path=centroid_path,
                     output_path=taxonomy_file,
-                    model=kraken_model,
-                    threads=threads
+                    modelo_path=NAIVE_MODEL_PATH,
+                    block_size=10000,
+                    n_threads=threads
                 )
 
-            elif classifier == "pro-engine":
+            # ----------------------------------------------------
+            # NAIVE V2
+            # ----------------------------------------------------
+            elif classifier == "naive-v2":
 
-                print("🚀 PRO-ENGINE activated (parallel classifier)")
+                print("🚀 Naive V2 classifier activated")
 
                 from metagenapp.pipeline.clasificacion_tax import classify_naive_por_bloques
                 from metagenapp.metagen_config import NAIVE_MODEL_PATH
@@ -572,6 +603,54 @@ def run_pipeline(
                     n_threads=threads
                 )
 
+            # ----------------------------------------------------
+            # KRAKEN-LITE
+            # ----------------------------------------------------
+            elif classifier == "kraken-lite":
+
+                print("🚀 Kraken-lite classifier activated")
+
+                from metagenapp_core.models.kraken_lite import classify_kraken_parallel
+                from metagenapp.metagen_config import KRAKEN_INDEX_PATH
+                import pickle
+                import os
+
+                print(f"📂 Loading Kraken index from: {KRAKEN_INDEX_PATH}")
+
+                if not os.path.exists(KRAKEN_INDEX_PATH):
+                    raise RuntimeError(f"❌ Kraken index not found: {KRAKEN_INDEX_PATH}")
+
+                with open(KRAKEN_INDEX_PATH, "rb") as f:
+                    kraken_model = pickle.load(f)
+
+                # 🔬 DEBUG CRÍTICO (esto nos dice TODO)
+                print("🧠 Kraken model loaded:")
+                print(f"   - k-mer size: {kraken_model.get('k')}")
+                print(f"   - total taxa: {len(kraken_model.get('taxonomy', []))}")
+                print(f"   - total k-mers: {len(kraken_model.get('kmer_index', {}))}")
+
+                classify_kraken_parallel(
+                    fasta_path=nonchimera_fasta,
+                    output_path=taxonomy_file,
+                    model=kraken_model,
+                    threads=threads
+                )
+                
+            # ----------------------------------------------------
+            # PRO ENGINE
+            # ----------------------------------------------------
+            elif classifier == "pro-engine":
+
+                print("🚀 PRO-ENGINE activated")
+
+                from metagenapp.pipeline.clasificacion_tax import classify_pro_engine
+
+                classify_pro_engine(
+                    fasta_path=nonchimera_fasta,
+                    output_path=taxonomy_file,
+                    threads=threads
+                )
+
             else:
                 raise ValueError(f"Unknown classifier: {classifier}")
 
@@ -580,6 +659,7 @@ def run_pipeline(
             raise RuntimeError(f"Taxonomic classification failed: {e}")
 
         end_step(success=True)
+
         print("✔ Taxonomic classification completed successfully")
         print(f"  Output: {taxonomy_file}")
 

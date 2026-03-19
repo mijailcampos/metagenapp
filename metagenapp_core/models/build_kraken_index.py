@@ -1,49 +1,71 @@
-def build_kraken_index(raw_model, max_taxa_per_kmer=50):
+import math
 
-    k = raw_model["kmer_size"]
-    taxa = raw_model["taxonomy_labels"]
-    kmer_counts = raw_model["kmer_counts"]
+
+def build_kraken_index(raw_model, max_taxa_per_kmer=100000):
+    """
+    Construye el índice kraken-lite con pesos TF-IDF.
+
+    Recibe raw_model con kmer_counts YA INVERTIDO:
+      kmer_counts: dict[kmer] -> dict[taxid] -> tf_count
+
+    TF  = frecuencia del kmer en el taxon
+    IDF = log( N_taxa / df_kmer ) + 1
+        donde df_kmer = len(kmer_counts[kmer]) = número de taxa con ese kmer
+
+    Efecto:
+      - Kmers diagnósticos (pocos taxa) → IDF alto → peso alto
+      - Kmers ubicuos (muchos taxa)     → IDF bajo → peso bajo
+      - NO se elimina ningún kmer por IDF — solo se reponderan
+    """
+    k           = raw_model["kmer_size"]
+    taxa        = raw_model["taxonomy_labels"]
+    kmer_counts = raw_model["kmer_counts"]  # dict[kmer] -> dict[taxid] -> tf
+
+    N_taxa = len(taxa)
 
     # ------------------------------------------------
-    # 1️⃣ contar en cuántos taxones aparece cada kmer
+    # 1. construir índice con peso TF-IDF
+    #    kmer_counts ya está invertido: kmer -> {taxid: tf}
     # ------------------------------------------------
-
-    kmer_taxon_freq = {}
-
-    for taxon, kmers in kmer_counts.items():
-        for kmer in kmers:
-
-            kmer_taxon_freq[kmer] = kmer_taxon_freq.get(kmer, 0) + 1
-
-    # ------------------------------------------------
-    # 2️⃣ construir índice filtrando kmers comunes
-    # ------------------------------------------------
-
     kmer_index = {}
 
-    for taxid, (taxon, kmers) in enumerate(kmer_counts.items()):
+    for kmer, taxid_counts in kmer_counts.items():
 
-        for kmer, weight in kmers.items():
+        df = len(taxid_counts)  # cuántos taxa tienen este kmer
 
-            # filtrar kmers no discriminativos
-            if kmer_taxon_freq[kmer] > max_taxa_per_kmer:
-                continue
+        # filtrar kmers que aparecen en demasiados taxa
+        if df > max_taxa_per_kmer:
+            continue
 
-            if kmer not in kmer_index:
+        # IDF suavizado: log(N / df) + 1
+        # +1 para que kmers únicos no dominen demasiado
+        idf = math.log(N_taxa / df) + 1.0
 
-                kmer_index[kmer] = taxid
+        entry = {}
+        for taxid, tf in taxid_counts.items():
+            entry[taxid] = tf * idf
 
-            else:
-
-                prev_taxid = kmer_index[kmer]
-
-                prev_weight = kmer_counts[taxa[prev_taxid]].get(kmer, 0)
-
-                if weight > prev_weight:
-                    kmer_index[kmer] = taxid
+        kmer_index[kmer] = entry
 
     return {
         "k": k,
         "taxonomy": taxa,
         "kmer_index": kmer_index
     }
+
+
+def invert_kmer_counts_by_taxon(kmer_counts_by_taxon, taxa_labels):
+    """
+    Input:  kmer_counts_by_taxon: dict[taxon_label] -> dict[kmer] -> weight
+            taxa_labels: list de taxon_label en orden taxid (si aplica)
+    Output: dict[kmer] -> dict[taxid] -> weight
+    """
+    kmer_counts = {}
+    for taxid, (taxon_label, kmers) in enumerate(kmer_counts_by_taxon.items()):
+        for kmer, w in kmers.items():
+            d = kmer_counts.get(kmer)
+            if d is None:
+                d = {}
+                kmer_counts[kmer] = d
+            d[taxid] = w
+    return kmer_counts

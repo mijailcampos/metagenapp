@@ -43,48 +43,90 @@ def main(
         "--profile",
         help="Load predefined profile configuration"
     ),
+
     input: Path = typer.Option(
         ..., "--input", "-i",
         exists=True,
         file_okay=False,
         readable=True,
-        help="Input directory with FASTQ files"
+        help="Input directory containing FASTQ files"
     ),
+
     outdir: Path = typer.Option(
         None, "--outdir", "-o",
-        help="Output directory for results"
+        help="Output directory where results will be stored"
     ),
+
     threads: int = typer.Option(
         8, "--threads", "-t",
         help="Number of CPU threads to use"
     ),
+
     mode: str = typer.Option(
         "student",
         "--mode",
-        help="Pipeline mode: student | premium | turbo | ref | qa",
+        help="""
+Pipeline mode
+
+student - quick analysis (10k centroid limit, low compute)
+premium - full analysis balanced
+turbo - maximum performance (uses more CPU)
+ref - publication-grade analysis (full dataset)
+qa - quality control only (contigs assembly)
+""",
         case_sensitive=False
     ),
+
     classifier: str = typer.Option(
         "flat",
         "--classifier",
-        help="Taxonomic classifier engine: flat | pro-engine",
-        case_sensitive=False
+        help="""
+Taxonomic classifier engine
+
+flat        simple taxonomy assigner
+naive-v2    parallel Naive Bayes classifier
+kraken-lite k-mer + LCA classifier (Kraken-style)
+pro-engine  high-resolution MetagenApp engine
+"""
     ),
+
     marker: str = typer.Option(
         "16S",
         "--marker",
         help="Marker type: 16S | 18S",
         case_sensitive=False
     ),
-    min_length: int = typer.Option(None, "--min-length"),
-    max_length: int = typer.Option(None, "--max-length"),
-    max_ambigs: int = typer.Option(None, "--max-ambigs"),
-    max_poly: int = typer.Option(None, "--max-poly"),
+
+    min_length: int = typer.Option(
+        None,
+        "--min-length",
+        help="Minimum sequence length filter"
+    ),
+
+    max_length: int = typer.Option(
+        None,
+        "--max-length",
+        help="Maximum sequence length filter"
+    ),
+
+    max_ambigs: int = typer.Option(
+        None,
+        "--max-ambigs",
+        help="Maximum allowed ambiguous bases"
+    ),
+
+    max_poly: int = typer.Option(
+        None,
+        "--max-poly",
+        help="Maximum homopolymer length"
+    ),
+
     extract_centroids: str = typer.Option(
         "full",
         "--extract-centroids",
         help="Centroid extraction mode: test | student | full"
     ),
+
     from_step: str = typer.Option(
         None,
         "--from-step",
@@ -99,13 +141,12 @@ def main(
     # Load profile if provided
     # ========================================================
     if profile:
+
         profile_data = load_profile(profile)
 
-        # Mode & threads from profile
         mode = profile_data.get("mode", mode)
         threads = profile_data.get("threads", threads)
 
-        # Filters (CLI overrides profile)
         if min_length is None:
             min_length = profile_data.get("min_length", 250)
 
@@ -118,20 +159,22 @@ def main(
         if max_poly is None:
             max_poly = profile_data.get("max_poly", 8)
 
-        # Auto-generate outdir if not provided
+        # auto output folder
         if outdir is None:
+
             input_resolved = input.resolve()
             sample_name = input_resolved.name
             timestamp = datetime.now().strftime("%Y%m%d_%H%M")
 
             base_output = Path(profile_data["output_base"])
             outdir = base_output / f"{sample_name}_{timestamp}"
+
             outdir.mkdir(parents=True, exist_ok=False)
 
             typer.echo(f"📁 Auto-generated output: {outdir}")
 
     # ========================================================
-    # Global defaults if still None
+    # Global defaults
     # ========================================================
     if min_length is None:
         min_length = 250
@@ -146,9 +189,10 @@ def main(
         max_poly = 8
 
     # ========================================================
-    # Require outdir if no profile
+    # Require output dir
     # ========================================================
     if outdir is None:
+
         typer.echo("❌ --outdir is required if no profile is used.")
         raise typer.Exit(code=1)
 
@@ -163,33 +207,48 @@ def main(
     # Validate mode
     # ========================================================
     valid_modes = {"student", "premium", "turbo", "ref", "qa"}
+
     if mode not in valid_modes:
+
         typer.echo(f"❌ Invalid mode: {mode}")
         typer.echo(f"Valid modes are: {', '.join(sorted(valid_modes))}")
+
         raise typer.Exit(code=1)
 
     # ========================================================
     # Validate classifier
     # ========================================================
-    valid_classifiers = {"flat", "pro-engine"}
+    valid_classifiers = {
+        "flat",
+        "naive-v2",
+        "kraken-lite",
+        "pro-engine"
+    }
+
     if classifier not in valid_classifiers:
+
         typer.echo(f"❌ Invalid classifier: {classifier}")
-        typer.echo("Valid options: flat | pro-engine")
+        typer.echo("Valid options: flat | naive-v2 | kraken-lite | pro-engine")
+
         raise typer.Exit(code=1)
 
     # ========================================================
     # Validate marker
     # ========================================================
     valid_markers = {"16S", "18S"}
+
     if marker not in valid_markers:
+
         typer.echo(f"❌ Invalid marker: {marker}")
         typer.echo("Valid options: 16S | 18S")
+
         raise typer.Exit(code=1)
 
     # ========================================================
     # QA MODE
     # ========================================================
     if mode == "qa":
+
         from metagenapp.pipeline.qa import run_qa_contigs
 
         run_qa_contigs(
@@ -199,6 +258,7 @@ def main(
         )
 
         typer.echo("🛑 QA mode finished. Pipeline stopped before filtering.")
+
         raise typer.Exit(code=0)
 
     # ========================================================

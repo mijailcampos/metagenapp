@@ -1,29 +1,37 @@
-def build_kraken_index(raw_model):
+def build_kraken_index(raw_model, max_taxa_per_kmer=1000):
 
     k = raw_model["kmer_size"]
     taxa = raw_model["taxonomy_labels"]
-    kmer_counts = raw_model["kmer_counts"]
+    kmer_counts = raw_model["kmer_counts"]  # dict[kmer] -> dict[taxid]
+
+    # ------------------------------------------------
+    # 1️⃣ contar en cuántos taxones aparece cada kmer
+    # ------------------------------------------------
+
+    kmer_taxon_freq = {}
+
+    for kmer, tax_dict in kmer_counts.items():
+        kmer_taxon_freq[kmer] = len(tax_dict)
+
+    # ------------------------------------------------
+    # 2️⃣ construir índice correctamente
+    # ------------------------------------------------
 
     kmer_index = {}
 
-    for taxid, (taxon, kmers) in enumerate(kmer_counts.items()):
+    for kmer, tax_dict in kmer_counts.items():
 
-        for kmer, weight in kmers.items():
+        # filtrar kmers demasiado comunes (ruido)
+        if kmer_taxon_freq[kmer] > max_taxa_per_kmer:
+            continue
 
-            # ignorar kmers poco informativos
-            if weight < 1e-5:
-                continue
+        # opcional: normalizar pesos
+        total = sum(tax_dict.values())
 
-            if kmer not in kmer_index:
-                kmer_index[kmer] = taxid
-
-            else:
-                prev_taxid = kmer_index[kmer]
-
-                prev_weight = kmer_counts[taxa[prev_taxid]].get(kmer, 0)
-
-                if weight > prev_weight:
-                    kmer_index[kmer] = taxid
+        kmer_index[kmer] = {
+            taxid: weight / total
+            for taxid, weight in tax_dict.items()
+        }
 
     return {
         "k": k,

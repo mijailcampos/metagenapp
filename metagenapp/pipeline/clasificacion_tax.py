@@ -6,6 +6,7 @@ import time
 from multiprocessing import Pool
 from Bio import SeqIO
 import pandas as pd
+from metagenapp.metagen_config import NAIVE_MODEL_PATH
 
 
 # ============================================================
@@ -32,7 +33,7 @@ def clasificar_una_secuencia(args):
 def classify_naive_por_bloques(
     fasta_path,
     output_path,
-    modelo_path="modelos/naive_model.pkl",
+    modelo_path=NAIVE_MODEL_PATH,
     block_size=10000,
     n_threads=None   # 👈 se acepta pero NO se usa
 ):
@@ -197,23 +198,81 @@ def classify_naive_sklearn(
 # 3. VSEARCH SINTAX — Fast Classifier
 # ============================================================
 def classify_vsearch_sintax(fasta_path, reference_fasta, output_path, n_threads=8):
+    import subprocess
+    import re
+
+    fasta_path = str(fasta_path)
+    reference_fasta = str(reference_fasta)
+    output_path = str(output_path)
+
+    raw_output = output_path + ".raw"
 
     cmd = [
         "vsearch",
         "--sintax", fasta_path,
         "--db", reference_fasta,
-        "--tabbedout", output_path,
-        "--sintax_cutoff", "0.6",
-        "--threads", str(n_threads)
+        "--tabbedout", raw_output,
+        "--sintax_cutoff", "0.8",
+        "--strand", "both",
+        "--threads", str(n_threads),
     ]
 
-    try:
-        subprocess.run(cmd, check=True)
-        return output_path, None
+    subprocess.run(cmd, check=True)
 
-    except subprocess.CalledProcessError as e:
-        return None, f"Error running VSEARCH:\n{e}"
+    with open(raw_output, "r") as fin, open(output_path, "w") as fout:
+        for line in fin:
+            line = line.rstrip("\n")
+            if not line:
+                continue
 
+            parts = [p.strip() for p in line.split("\t")]
+
+            # Primer campo = seq_id
+            seq_id = parts[0]
+
+            # Buscar campo de taxonomía útil
+            taxonomy = ""
+            for p in parts[1:]:
+                if "tax=" in p:
+                    # Si alguna vez aparece formato con tax=
+                    taxonomy = p.split("tax=", 1)[1]
+                    break
+                elif any(prefix in p for prefix in ["d:", "k:", "p:", "c:", "o:", "f:", "g:", "s:"]):
+                    taxonomy = p
+
+            if not taxonomy or taxonomy == "+":
+                taxonomy = "unknown;"
+
+            # Limpiar scores/confidencias tipo (0.98)
+            taxonomy = re.sub(r"\([0-9.]+\)", "", taxonomy)
+
+            # Quitar prefijos de nivel
+            taxonomy = (
+                taxonomy.replace("d:", "")
+                        .replace("k:", "")
+                        .replace("p:", "")
+                        .replace("c:", "")
+                        .replace("o:", "")
+                        .replace("f:", "")
+                        .replace("g:", "")
+                        .replace("s:", "")
+            )
+
+            # Convertir comas en ;
+            taxonomy = taxonomy.replace(",", ";")
+
+            # Limpiar separadores repetidos
+            taxonomy = re.sub(r";+", ";", taxonomy).strip(";")
+
+            if not taxonomy:
+                taxonomy = "unknown"
+
+            taxonomy = taxonomy + ";"
+
+            # ESCRIBIR SOLO 2 COLUMNAS
+            fout.write(f"{seq_id}\t{taxonomy}\n")
+
+    return output_path
 
 # ============================================================
 # 4. Convert SINTAX → Mothur .taxonomy format

@@ -18,9 +18,14 @@ def remove_lineage(
             taxonomy_path,
             sep="\t",
             header=None,
+            usecols=[0, 1],
             names=["ASV", "Taxonomy"],
-            dtype=str
+            dtype=str,
+            engine="python"
         )
+        tax_df["ASV"] = tax_df["ASV"].fillna("").astype(str).str.strip()
+        tax_df["Taxonomy"] = tax_df["Taxonomy"].fillna("unknown;").astype(str).str.strip()
+        tax_df = tax_df[tax_df["ASV"] != ""].copy()
 
         # -------------------------
         # Load count table

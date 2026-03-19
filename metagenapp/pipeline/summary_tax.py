@@ -2,100 +2,93 @@ import pandas as pd
 
 
 def summary_tax(taxonomy_path, count_table_path, nivel="Phylum"):
-    """
-    Generates a taxonomic summary table for a chosen taxonomic rank.
-    Works with taxonomies from Mothur, VSEARCH SINTAX, PR2, SILVA,
-    or Naive Bayes models. Automatically detects delimiters and
-    number of levels.
-    """
-
     try:
         # -------------------------
-        # 1. Load taxonomy file
+        # Load taxonomy
         # -------------------------
         tax_df = pd.read_csv(
-            taxonomy_path, sep="\t", header=None, names=["OTU", "Taxonomy"]
+            taxonomy_path,
+            sep="\t",
+            header=None,
+            usecols=[0, 1],
+            names=["ASV", "Taxonomy"],
+            dtype=str,
+            engine="python"
         )
 
-        # -------------------------
-        # 2. Load count table
-        # -------------------------
-        count_df = pd.read_csv(count_table_path, sep="\t")
-        id_column = count_df.columns[0]
-
-        # Standardize IDs
-        tax_df["OTU"] = tax_df["OTU"].astype(str).str.strip()
-        count_df[id_column] = count_df[id_column].astype(str).str.strip()
+        tax_df["ASV"] = tax_df["ASV"].fillna("").astype(str).str.strip()
+        tax_df["Taxonomy"] = tax_df["Taxonomy"].fillna("").astype(str).str.strip()
+        tax_df = tax_df[tax_df["ASV"] != ""].copy()
 
         # -------------------------
-        # 3. Compute abundance per OTU
+        # Load count table
         # -------------------------
-        count_df["Total"] = count_df.drop(columns=[id_column]).sum(axis=1)
-        abundances = dict(zip(count_df[id_column], count_df["Total"]))
-        tax_df["Abundance"] = tax_df["OTU"].map(abundances)
-
-        # -------------------------
-        # 4. Detect delimiter and split taxonomy
-        # -------------------------
-        tax_df["delim"] = tax_df["Taxonomy"].apply(
-            lambda x: "," if "," in str(x) else ";"
+        count_df = pd.read_csv(
+            count_table_path,
+            sep="\t",
+            dtype={0: str}
         )
 
-        def split_levels(row):
-            raw = str(row["Taxonomy"])
-            delim = row["delim"]
-
-            parts = [p.strip() for p in raw.split(delim) if p.strip() != ""]
-
-            # Remove prefixes like "k__", "p__", "g__", etc.
-            parts = [p.split("__")[-1] for p in parts]
-
-            return parts
-
-        tax_df["Levels"] = tax_df.apply(split_levels, axis=1)
+        id_col = count_df.columns[0]
 
         # -------------------------
-        # 5. Define taxonomic order dynamically
+        # Parse taxonomy safely
         # -------------------------
-        taxonomic_order = ["Kingdom", "Phylum",
-                           "Class", "Order", "Family", "Genus"]
+        def split_levels(tax_string):
 
-        # How many levels does the taxonomy actually have?
-        max_levels = tax_df["Levels"].apply(len).max()
+            if not tax_string or tax_string == "Unclassified":
+                return []
 
-        # Extend missing levels with "Unclassified"
-        def normalize_levels(levels):
-            levels = list(levels)
-            while len(levels) < max_levels:
-                levels.append("Unclassified")
+            levels = [x.strip().replace('"','') for x in tax_string.strip(";").split(";") if x.strip()]
+
             return levels
 
-        tax_df["Levels"] = tax_df["Levels"].apply(normalize_levels)
+        tax_df["Levels"] = tax_df["Taxonomy"].apply(split_levels)
 
         # -------------------------
-        # 6. Select correct index for requested level
+        # Map taxonomic rank
         # -------------------------
-        if nivel not in taxonomic_order:
-            idx = 1  # default to Phylum if unknown
-        else:
-            idx = taxonomic_order.index(nivel)
+        rank_map = {
+            "Kingdom": 0,
+            "Phylum": 1,
+            "Class": 2,
+            "Order": 3,
+            "Family": 4,
+            "Genus": 5,
+            "Species": 6
+        }
 
-        # If the requested index exceeds available levels → use last
-        idx = min(idx, max_levels - 1)
+        idx = rank_map.get(nivel, 1)
 
-        tax_df["Level"] = tax_df["Levels"].apply(lambda x: x[idx])
+        # Extraer nivel taxonómico
+        def get_level(levels):
+            if len(levels) > idx:
+                return levels[idx]
+            else:
+                return "Unclassified"
+
+        tax_df["Level"] = tax_df["Levels"].apply(get_level)
 
         # -------------------------
-        # 7. Summarize abundances
+        # Merge taxonomy + counts
         # -------------------------
-        summary = (
-            tax_df.groupby("Level")["Abundance"]
-            .sum()
-            .sort_values(ascending=False)
-            .reset_index()
+        merged = pd.merge(
+            tax_df[["ASV", "Level"]],
+            count_df,
+            left_on="ASV",
+            right_on=id_col,
+            how="inner"
         )
 
-        return summary, None
+        # -------------------------
+        # Summarize counts
+        # -------------------------
+        sample_cols = [c for c in count_df.columns if c != id_col]
+
+        resumen = merged.groupby("Level")[sample_cols].sum().reset_index()
+        resumen = resumen.rename(columns={"Level": nivel})
+
+        return resumen, None
 
     except Exception as e:
         return None, str(e)
