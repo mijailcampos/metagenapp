@@ -53,8 +53,8 @@ def classify_naive_por_bloques(
 
     # 🔬 Modelo PR2 nuevo (dict)
     elif isinstance(payload, dict):
-        class_kmer_counts = payload["class_kmer_counts"]
-        class_total_kmers = payload["class_total_kmers"]
+        class_kmer_counts = payload.get("class_kmer_counts") or payload.get("kmer_counts")
+        #class_total_kmers = payload["class_total_kmers"]
         k = payload["k"]
 
         # reconstruimos estructura compatible

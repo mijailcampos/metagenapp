@@ -7,6 +7,7 @@ def asignar_taxonomia_a_otus(shared_path, taxonomy_path, output_path):
     # Detectar nombre real de la columna de ASV
     posibles_ids = [
         "ASV",
+        "ContigID",
         "Sequence_ID",
         "representative_sequence",
         "Representative_Sequence"

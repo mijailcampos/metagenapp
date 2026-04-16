@@ -11,8 +11,10 @@ from metagenapp_core.utils.parallel import run_parallel
 _V2_MODEL = None
 
 def _v2_init_worker(model):
+    import random
     global _V2_MODEL
     _V2_MODEL = model
+    random.seed()  # re-seed desde OS entropy — evita que workers fork compartan el mismo estado PRNG
 
 def _v2_worker(pair):
     from metagenapp_core.models.naive_v2_engine import classify_seq_v2
@@ -109,7 +111,7 @@ def classify_naive_por_bloques(
 
     # Modelo PR2 nuevo (dict)
     elif isinstance(payload, dict):
-        class_kmer_counts = payload["class_kmer_counts"]
+        class_kmer_counts = payload.get("class_kmer_counts") or payload.get("kmer_counts")
         k = payload["k"]
         taxa = list(class_kmer_counts.keys())
         cond_probs = class_kmer_counts

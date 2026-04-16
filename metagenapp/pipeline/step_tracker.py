@@ -13,6 +13,26 @@ except ImportError:
     STREAMLIT_AVAILABLE = False
 
 # --------------------------------------------------
+# External callback (API / GUI integration)
+# set_step_callback(fn) donde fn(event, step_name, success)
+# --------------------------------------------------
+_step_callback = None
+
+def set_step_callback(callback):
+    """Registra un callback externo para recibir eventos de steps."""
+    global _step_callback
+    _step_callback = callback
+
+
+def emit_qa_result(data: dict):
+    """Emite el resultado estructurado de un QA al callback externo."""
+    if _step_callback:
+        try:
+            _step_callback("qa_result", "", True, data)
+        except Exception:
+            pass
+
+# --------------------------------------------------
 # Paths (GUI-safe, CLI-safe)
 # --------------------------------------------------
 LOG_FILE = "user_data/logs/pipeline_ui.log"
@@ -55,6 +75,16 @@ def start_step(step_name: str):
     state["pipeline_log"].append(f"▶ Started: {step_name}")
     state["pipeline_log"] = state["pipeline_log"][-50:]
 
+    # External callback
+    if _step_callback:
+        try:
+            _step_callback("start", step_name, True)
+        except Exception:
+            pass
+
+    # Console output
+    print(f"\n── {step_name}")
+
 
 def end_step(success: bool = True):
     """Finish a step, log duration and system resources."""
@@ -76,6 +106,19 @@ def end_step(success: bool = True):
     msg = f"{status_symbol} {step_name} finished in {elapsed:.2f} s"
     state["pipeline_log"].append(msg)
     state["pipeline_log"] = state["pipeline_log"][-50:]
+
+    # External callback
+    if _step_callback:
+        try:
+            _step_callback("end", step_name, success)
+        except Exception:
+            pass
+
+    # Console output
+    if success:
+        print(f"   ✅ {elapsed:.1f}s")
+    else:
+        print(f"   ❌ failed after {elapsed:.1f}s")
 
     # System resources
     ram = psutil.virtual_memory().used / (1024 ** 3)

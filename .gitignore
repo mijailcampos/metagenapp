@@ -6,3 +6,28 @@ config/secrets*
 __pycache__/
 *.pyc
 *.log
+
+# Datos de usuario (FASTQs, resultados — nunca van a GitHub)
+user_data/
+metagenapp/user_data/
+
+# Archivos de secuenciación y bioinformática
+*.fastq
+*.fastq.gz
+*.fq
+*.fq.gz
+*.bam
+*.sam
+*.vcf
+*.kraken
+*.bracken
+
+# Build artifacts
+*.egg-info/
+UNKNOWN.egg-info/
+dist/
+build/
+
+# Logs de herramientas
+mothur.*.logfile
+profiles.yaml

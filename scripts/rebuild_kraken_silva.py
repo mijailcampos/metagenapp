@@ -3,20 +3,21 @@
 rebuild_kraken_silva.py
 =======================
 Construye el índice kraken-lite de MetagenApp desde el trainset SILVA completo
-(Bacteria + Archaea, ~380,000 secuencias).
+(Bacteria + Archaea, ~451,000 secuencias, 83,759 taxa a nivel de especie).
 
 Requiere haber corrido primero:
   python3 scripts/build_silva_trainset.py
 
 Salida:
-  /data/databases/metagenapp_refs/16S/kraken_index_silva_idf_v2.pkl
+  /data/databases/metagenapp_refs/16S/kraken_index_silva_v2.pkl
 
 Uso:
   cd ~/MetagenApp
   python3 scripts/rebuild_kraken_silva.py
 
 Nota de memoria:
-  Con ~380k secuencias y k=13 este proceso puede usar 20-60 GB RAM.
+  Con 256 GB RAM y ~451k secuencias, k=13, max_taxa_per_kmer=10_000,
+  el proceso usa ~60-120 GB RAM en pico.
   Monitorear con: watch -n5 free -h
 """
 
@@ -25,18 +26,20 @@ import time
 from pathlib import Path
 
 from metagenapp_core.models.train_kmer_postings import train_raw_kmer_postings
-from metagenapp_core.models.build_kraken_index import (
-    build_kraken_index,
-    invert_kmer_counts_by_taxon,
-)
+from metagenapp_core.models.build_kraken_index import build_kraken_index
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
 FASTA  = "/data/databases/metagenapp_refs/trainset_silva/SILVA_NR99_BacArc.fasta"
 TAX    = "/data/databases/metagenapp_refs/trainset_silva/SILVA_NR99_BacArc.tax"
-OUTPUT = "/data/databases/metagenapp_refs/16S/kraken_index_silva_idf_v2.pkl"
+OUTPUT = "/data/databases/metagenapp_refs/16S/kraken_index_silva_v2.pkl"
 
-K                = 13       # igual que kraken_index_v4
-MAX_TAXA_PER_KMER = 100_000  # igual que rebuild_kraken_index_v4.py
+# K más largo → mejor discriminación a nivel de género
+# Con 256 GB RAM, k=13 con max_taxa_per_kmer=10_000 es manejable
+K                = 13
+# Cap por kmer durante el entrenamiento (limita RAM pico)
+TRAIN_CAP        = 10_000
+# Cap durante la construcción del índice (solo excluye los más ubicuos)
+MAX_TAXA_PER_KMER = 50_000
 
 # ── Validación ────────────────────────────────────────────────────────────────
 for path in [FASTA, TAX]:
@@ -52,40 +55,41 @@ Path(OUTPUT).parent.mkdir(parents=True, exist_ok=True)
 print("=" * 60)
 print("  rebuild_kraken_silva.py — MetagenApp")
 print("=" * 60)
-print(f"  FASTA  : {FASTA}")
-print(f"  TAX    : {TAX}")
-print(f"  OUTPUT : {OUTPUT}")
-print(f"  k      : {K}")
+print(f"  FASTA            : {FASTA}")
+print(f"  TAX              : {TAX}")
+print(f"  OUTPUT           : {OUTPUT}")
+print(f"  k                : {K}")
+print(f"  train_cap        : {TRAIN_CAP:,}")
+print(f"  max_taxa_per_kmer: {MAX_TAXA_PER_KMER:,}")
 print("=" * 60)
 
 t0 = time.time()
 
 # ── 1. Kmer postings ──────────────────────────────────────────────────────────
-print("\n[1/4] Training raw kmer postings...")
-raw_model = train_raw_kmer_postings(FASTA, TAX, k=K)
-print(f"      Taxa indexadas : {len(raw_model['taxonomy_labels']):,}")
-print(f"      Tiempo         : {time.time() - t0:.1f}s")
+# train_raw_kmer_postings ya entrega el índice invertido:
+#   kmer_counts: dict[kmer_str] -> dict[taxid] -> count
+# NO hay que invertir de nuevo.
+print("\n[1/3] Training raw kmer postings...")
+raw_model = train_raw_kmer_postings(FASTA, TAX, k=K, max_taxa_per_kmer=TRAIN_CAP)
+n_kmers = len(raw_model["kmer_counts"])
+n_taxa  = len(raw_model["taxonomy_labels"])
+print(f"      Taxa indexadas   : {n_taxa:,}")
+print(f"      K-mers únicos    : {n_kmers:,}")
+print(f"      Tiempo           : {time.time() - t0:.1f}s")
 
-# ── 2. Invertir postings ──────────────────────────────────────────────────────
-t1 = time.time()
-print("\n[2/4] Inverting kmer postings (kmer → taxon → weight)...")
-raw_model["kmer_counts"] = invert_kmer_counts_by_taxon(
-    raw_model["kmer_counts"],
-    raw_model["taxonomy_labels"],
-)
-print(f"      Tiempo: {time.time() - t1:.1f}s")
-
-# ── 3. Construir índice kraken-lite ───────────────────────────────────────────
+# ── 2. Construir índice kraken-lite con TF-IDF ────────────────────────────────
+# Las claves se codifican como enteros 2-bit en build_kraken_index
+# para coincidir con encode_kmer() del engine.
 t2 = time.time()
-print(f"\n[3/4] Building kraken-lite index (max_taxa_per_kmer={MAX_TAXA_PER_KMER:,})...")
+print(f"\n[2/3] Building kraken-lite index (max_taxa_per_kmer={MAX_TAXA_PER_KMER:,})...")
 index = build_kraken_index(raw_model, max_taxa_per_kmer=MAX_TAXA_PER_KMER)
 print(f"      K-mers en índice : {len(index['kmer_index']):,}")
 print(f"      Taxa en índice   : {len(index['taxonomy']):,}")
 print(f"      Tiempo           : {time.time() - t2:.1f}s")
 
-# ── 4. Guardar ────────────────────────────────────────────────────────────────
+# ── 3. Guardar ────────────────────────────────────────────────────────────────
 t3 = time.time()
-print(f"\n[4/4] Saving index → {OUTPUT}")
+print(f"\n[3/3] Saving index → {OUTPUT}")
 with open(OUTPUT, "wb") as f:
     pickle.dump(index, f)
 
@@ -96,9 +100,9 @@ print(f"      Tiempo         : {time.time() - t3:.1f}s")
 # ── Resumen ───────────────────────────────────────────────────────────────────
 total = time.time() - t0
 print("\n" + "=" * 60)
-print(f"  ✅ Índice SILVA listo en {total/60:.1f} min")
+print(f"  Índice SILVA v2 listo en {total/60:.1f} min")
 print(f"  {OUTPUT}")
 print("=" * 60)
 print()
 print("Para usar este índice en MetagenApp, actualizar en metagen_config.py:")
-print(f'  KRAKEN_INDEX = "{OUTPUT}"')
+print(f'  KRAKEN_INDEX_PATH = REF_16S_ROOT / "kraken_index_silva_v2.pkl"')

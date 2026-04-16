@@ -127,6 +127,20 @@ pro-engine  high-resolution MetagenApp engine
         help="Centroid extraction mode: test | student | full"
     ),
 
+    model_type: str = typer.Option(
+        "general",
+        "--model-type",
+        help="""
+Reference model type for naive-v2 classifier
+
+general  general-purpose 16S (default, current v4)
+oral     oral/pharyngeal microbiome (HOMD-based)
+gut      gut microbiome (SILVA gut subset)
+skin     skin microbiome (HMP skin subset)
+env      environmental samples (SILVA full)
+"""
+    ),
+
     from_step: str = typer.Option(
         None,
         "--from-step",
@@ -189,19 +203,24 @@ pro-engine  high-resolution MetagenApp engine
         max_poly = 8
 
     # ========================================================
-    # Require output dir
+    # Auto output dir (no profile, no --outdir given)
     # ========================================================
     if outdir is None:
 
-        typer.echo("❌ --outdir is required if no profile is used.")
-        raise typer.Exit(code=1)
+        input_resolved = input.resolve()
+        sample_name = input_resolved.name
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        outdir = Path.cwd() / f"{sample_name}_{timestamp}"
+        outdir.mkdir(parents=True, exist_ok=False)
+        typer.echo(f"📁 Output: {outdir}")
 
     # ========================================================
     # Normalize case
     # ========================================================
-    mode = mode.lower()
+    mode       = mode.lower()
     classifier = classifier.lower()
-    marker = marker.upper()
+    marker     = marker.upper()
+    model_type = model_type.lower()
 
     # ========================================================
     # Validate mode
@@ -231,6 +250,26 @@ pro-engine  high-resolution MetagenApp engine
         typer.echo("Valid options: flat | naive-v2 | kraken-lite | pro-engine")
 
         raise typer.Exit(code=1)
+
+    # ========================================================
+    # Validate model_type (only relevant for naive-v2)
+    # ========================================================
+    from metagenapp.metagen_config import VALID_MODEL_TYPES
+
+    if model_type not in VALID_MODEL_TYPES:
+        typer.echo(f"❌ Invalid --model-type: {model_type}")
+        typer.echo(f"Valid options: {' | '.join(sorted(VALID_MODEL_TYPES))}")
+        raise typer.Exit(code=1)
+
+    if classifier == "naive-v2" and model_type != "general":
+        from metagenapp.metagen_config import NAIVE_MODELS
+        marker_models = NAIVE_MODELS.get(marker, {})
+        model_path = marker_models.get(model_type)
+        if model_path and not model_path.exists():
+            typer.echo(f"⚠️  Modelo '{model_type}' para {marker} aún no entrenado.")
+            typer.echo(f"   Esperado en: {model_path}")
+            typer.echo(f"   Usa: metagenapp-train --marker {marker} --model-type {model_type}")
+            raise typer.Exit(code=1)
 
     # ========================================================
     # Validate marker
@@ -273,6 +312,7 @@ pro-engine  high-resolution MetagenApp engine
         mode=mode,
         classifier=classifier,
         marker=marker,
+        model_type=model_type,
         min_length=min_length,
         max_length=max_length,
         max_ambigs=max_ambigs,

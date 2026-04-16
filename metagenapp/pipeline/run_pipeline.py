@@ -1,10 +1,13 @@
+import time
+import resource
 from pathlib import Path
 
 from metagenapp.metagen_config import (
     PR2_REFERENCE,
     SILVA_REFERENCE_RAW,
     SILVA_REFERENCE_ALN,
-    NAIVE_MODEL_PATH
+    NAIVE_MODEL_PATH,
+    get_naive_model_path,
 )
 
 # ===============================
@@ -26,6 +29,7 @@ from metagenapp.pipeline.alignment_diagnostics import (
     infer_region
 )
 from metagenapp.pipeline.alignment import align_with_vsearch
+from metagenapp.pipeline.aggregate_cluster_counts import aggregate_cluster_counts
 
 # ===============================
 # CLI steps
@@ -49,7 +53,8 @@ def run_pipeline(
     threads=8,
     mode="student",
     classifier="flat",
-    marker="16S",   # 👈 NUEVO
+    marker="16S",
+    model_type="general",
     from_step=None,
     min_length=250,
     max_length=600,
@@ -59,10 +64,20 @@ def run_pipeline(
 ):
 
 
-    print("🧬 MetagenApp pipeline started")
-    print(f"Input dir: {input_dir}")
-    print(f"Output dir: {outdir}")
+    print()
+    print("═" * 54)
+    print("  MetagenApp — metabarcoding pipeline")
+    print("═" * 54)
+    print(f"  Mode:       {mode}")
+    print(f"  Marker:     {marker}")
+    print(f"  Classifier: {classifier}")
+    print(f"  Threads:    {threads}")
+    print(f"  Input:      {input_dir}")
+    print(f"  Output:     {outdir}")
+    print("═" * 54)
+    print()
 
+    t_start = time.time()
     pipeline_success = True
 
     input_dir = Path(input_dir)
@@ -123,6 +138,7 @@ def run_pipeline(
     # ============================================================
     files_path = outdir / "input_samples.files"
 
+    _merge_results = []   # (sample, pairs, merged, pct, fastq_path)
     assembled_fasta = outdir / "assembled_contigs.fasta"
     assembled_count = outdir / "assembled_contigs.count_table"
 
@@ -179,7 +195,7 @@ def run_pipeline(
     # ============================================================
     if should_run("01_Assemble_contigs"):
         start_step("01_Assemble_contigs")
-        _, error = assemble_contigs(
+        _, error, _merge_results = assemble_contigs(  # noqa: F841
             files_path=files_path,
             input_dir=input_dir,
             output_fasta=assembled_fasta,
@@ -189,7 +205,6 @@ def run_pipeline(
             end_step(success=False)
             raise RuntimeError(error)
         end_step(success=True)
-        print("✔ Assemble contigs finished")
 
     # ============================================================
     # Step 02 — Filter contigs
@@ -218,8 +233,88 @@ def run_pipeline(
                 "Check min_length, max_length, max_ambigs, max_poly."
             )
 
+        print(f"   {retained:,} contigs retained")
         end_step(success=True)
-        print(f"✔ Filter contigs finished — {retained} contigs retained")
+
+    # ============================================================
+    # QA early exit — solo ensamblado + filtrado
+    # ============================================================
+    if mode == "qa":
+        from metagenapp.pipeline.summarize_contigs import summarize_contigs
+        from metagenapp.pipeline.qa import _print_summary_table, _print_marker_section, _MARKERS
+        from metagenapp.pipeline.step_tracker import emit_qa_result
+
+        print()
+        print("═" * 54)
+        print("  QA — Resumen de calidad del ensamblado")
+        print("═" * 54)
+
+        # Tabla por muestra (de assemble_contigs)
+        total_pairs   = sum(r[1] for r in _merge_results)
+        total_merged  = sum(r[2] for r in _merge_results)
+        overall_pct   = (total_merged / total_pairs * 100) if total_pairs else 0
+
+        qa_data = {
+            "retained": retained,
+            "filters": {
+                "min_length": min_length,
+                "max_length": max_length,
+                "max_ambigs": max_ambigs,
+                "max_poly":   max_poly,
+            },
+            "assembly": {
+                "samples": [
+                    {"sample": r[0], "pairs": r[1], "merged": r[2], "pct": round(r[3], 1)}
+                    for r in _merge_results
+                ],
+                "total_pairs":  total_pairs,
+                "total_merged": total_merged,
+                "overall_pct":  round(overall_pct, 1),
+            },
+            "stats": {},
+            "stats_table": {},
+            "markers": [],
+        }
+
+        try:
+            summary = summarize_contigs(
+                fasta_path=filtered_fasta,
+                count_table_path=filtered_count,
+            )
+            _print_summary_table(summary)
+            median_bp = float(summary["Median"]["NBases"])
+            min_bp    = float(summary["Minimum"]["NBases"])
+            mean_bp   = float(summary["Mean"]["NBases"])
+            _print_marker_section(median_bp)
+
+            qa_data["stats"] = {
+                "total_assembled":  int(summary.get("total sequences", 0)),
+                "unique_contigs":   int(summary.get("# of contigs", 0)),
+                "median_bp":  median_bp,
+                "min_bp":     min_bp,
+                "mean_bp":    mean_bp,
+            }
+            # Tabla completa Min/Median/Mean × columnas
+            cols = ["Start", "End", "NBases", "Ambigs", "Polymer", "NumSeqs"]
+            qa_data["stats_table"] = {
+                stat: {col: summary[stat][col] for col in cols}
+                for stat in ("Minimum", "Median", "Mean")
+                if stat in summary
+            }
+            qa_data["markers"] = [
+                {"region": name, "primers": primers, "min_bp": lo, "max_bp": hi,
+                 "match": lo <= median_bp <= hi}
+                for name, primers, lo, hi in _MARKERS
+            ]
+        except Exception as e:
+            print(f"   (resumen no disponible: {e})")
+
+        print()
+        print(f"  Filtros aplicados: min={min_length}bp  max={max_length}bp  ambigs≤{max_ambigs}  poly≤{max_poly}")
+        print("═" * 54)
+
+        emit_qa_result(qa_data)
+        return
 
     # ============================================================
     # Step 03 — Unique contigs
@@ -236,8 +331,8 @@ def run_pipeline(
         except Exception as e:
             end_step(success=False)
             raise RuntimeError(f"Unique contigs failed: {e}")
+        print(f"   {n_unique:,} unique sequences")
         end_step(success=True)
-        print(f"✔ Unique contigs finished — {n_unique} sequences")
 
     # ============================================================
     # Step 04 — Alignment vsearch
@@ -264,7 +359,6 @@ def run_pipeline(
             raise RuntimeError(f"Alignment failed: {e}")
 
         end_step(success=True)
-        print("✔ Alignment finished")
 
     # ============================================================
     # Step 05 — Trim
@@ -285,7 +379,6 @@ def run_pipeline(
             end_step(success=False)
             raise RuntimeError(f"Trim failed: {e}")
         end_step(success=True)
-        print(f"✔ Trim finished — {msg}")
 
     # ============================================================
     # Step 06 — Clustering 97
@@ -308,7 +401,6 @@ def run_pipeline(
             end_step(success=False)
             raise RuntimeError(f"Clustering failed: {e}")
         end_step(success=True)
-        print(msg)
 
     # ============================================================
     # Step 07 — Extract centroids
@@ -340,17 +432,33 @@ def run_pipeline(
             end_step(success=False)
             raise RuntimeError(f"Centroid extraction failed: {e}")
 
+        label = f"{n_centroids:,}" if n_centroids else "all"
+        print(f"   {label} centroids extracted")
         end_step(success=True)
-        label = f"{n_centroids} centroides" if n_centroids else "ALL centroides"
-        print(f"✔ Centroid extraction finished ({label})")
 
         # default path for downstream steps
         nonchimera_fasta = centroid_fasta
         nonchimera_count = unique_count
 
+        # ── Aggregate read counts from unique sequences to centroids ──
+        # unique_count has one row per unique sequence — not per centroid.
+        # We use the UC file to sum reads into their cluster centroids,
+        # producing the correct read-weighted count table for all
+        # downstream steps (taxonomy summary, ASV table, etc.).
+        centroids_count = outdir / "centroids_all.count_table"
+        out, n_c, total_r, err = aggregate_cluster_counts(
+            uc_path=clustered_uc,
+            count_table_path=unique_count,
+            output_path=centroids_count,
+        )
+        if err:
+            raise RuntimeError(f"Cluster count aggregation failed: {err}")
+        nonchimera_count = Path(out)
+        print(f"   {n_c:,} centroids, {total_r:,} reads aggregated")
+
         if classifier == "kraken-lite":
             preclustered_fasta = centroid_fasta
-            preclustered_count = unique_count
+            preclustered_count = nonchimera_count
 
 
     
@@ -369,7 +477,7 @@ def run_pipeline(
 
             if mode == "ref":
 
-                print("🚀 REF mode (professional): EDLib mapping centroids → reference")
+                print("   EDLib mapping centroids → reference")
 
                 aligned_mafft = outdir / "centroids_vs_reference.edlib.tsv"
 
@@ -384,8 +492,6 @@ def run_pipeline(
                 aligned_mafft = Path(aligned_path)
 
             else:
-
-                print("🧪 Running MAFFT alignment")
 
                 aligned_path, msg = align_with_mafft(
                     input_path=centroid_fasta,
@@ -408,10 +514,9 @@ def run_pipeline(
             raise RuntimeError(f"Alignment step failed: {e}")
 
         end_step(success=True)
-        print("✔ Alignment step finished")
 
     else:
-        print("⚡ Kraken-lite mode: skipping MAFFT alignment pipeline")
+        print("\n   [kraken-lite] skipping MAFFT alignment")
 
     # ============================================================
     # Step 14 — MAFFT positional filter
@@ -438,7 +543,7 @@ def run_pipeline(
             start = max(10, int(aln_len * 0.05))
             end = int(aln_len * 0.95)
 
-            print(f"⚙️ Adaptive positional window ({start}–{end}) for alignment length {aln_len}")
+            print(f"   window {start}–{end} / {aln_len} bp")
 
             out, retained, total, msg = filtrar_mafft_por_posicion(
                 fasta_path=aligned_mafft,
@@ -458,9 +563,6 @@ def run_pipeline(
                 print("⚠️ Positional filter removed all sequences — reverting to original alignment")
                 filtered_mafft = aligned_mafft
                 retained = total
-
-            print("✔ MAFFT positional filtering finished")
-            print(msg)
 
             end_step(success=True)
 
@@ -494,7 +596,6 @@ def run_pipeline(
             raise
 
         end_step(success=True)
-        print("✔ Filter alignment columns finished")
 
     # ============================================================
     # Step 16 — Unique MAFFT
@@ -510,14 +611,13 @@ def run_pipeline(
                 outdir=outdir
             )
             unique_mafft_fasta = Path(result["fasta"])
-            unique_mafft_count = filtered_count  # hereda count_table
+            unique_mafft_count = nonchimera_count  # centroid-level count table
         except Exception:
             end_step(success=False)
             raise
 
+        print(f"   {result['n_unique']:,} unique sequences")
         end_step(success=True)
-        print("✔ Unique MAFFT sequences generated")
-        print(f"  Total unique sequences: {result['n_unique']}")
 
 
     # ============================================================
@@ -525,10 +625,28 @@ def run_pipeline(
     # ============================================================
 
     if classifier == "kraken-lite":
-        print("⚡ Kraken-lite mode: skipping Chimera detection (alignment not required)")
+        print("\n   [kraken-lite] skipping chimera detection")
+
+    elif mode == "ref" and classifier == "naive-v2":
+        # En ref mode + naive-v2 los centroides no pasan por MAFFT,
+        # pero sí necesitan chimera removal antes de clasificar.
+        if should_run("18_ChimeraDetection"):
+            start_step("18_ChimeraDetection")
+            try:
+                result = run_step18(
+                    fasta_input=centroid_fasta,
+                    count_input=nonchimera_count,
+                    outdir=outdir
+                )
+                nonchimera_fasta = Path(result["fasta"])
+                nonchimera_count = Path(result["count"]) if result["count"] else None
+                end_step(success=True)
+            except Exception as e:
+                end_step(success=False)
+                raise RuntimeError(str(e))
 
     elif mode == "ref":
-        print("⏭ Skipping Chimera Detection in REF mode (professional engine active)")
+        pass  # ref mode skips chimera (professional engine handles it)
 
     else:
 
@@ -546,8 +664,6 @@ def run_pipeline(
 
                 nonchimera_fasta = Path(result["fasta"])
                 nonchimera_count = Path(result["count"]) if result["count"] else None
-
-                print("✔ Chimera detection completed successfully")
 
                 end_step(success=True)
 
@@ -589,45 +705,44 @@ def run_pipeline(
             # NAIVE V2
             # ----------------------------------------------------
             elif classifier == "naive-v2":
-
-                print("🚀 Naive V2 classifier activated")
-
-                from metagenapp.pipeline.clasificacion_tax import classify_naive_por_bloques
-                from metagenapp.metagen_config import NAIVE_MODEL_PATH
-
-                classify_naive_por_bloques(
-                    fasta_path=nonchimera_fasta,
-                    output_path=taxonomy_file,
-                    modelo_path=NAIVE_MODEL_PATH,
-                    block_size=2000,
-                    n_threads=threads
-                )
+                naive_model_path = get_naive_model_path(marker=marker, model_type=model_type)
+                print(f"🚀 Naive V2 classifier activated [{model_type}]")
+                print(f"   Model: {naive_model_path}")
+                import pickle, gc
+                from Bio import SeqIO
+                from metagenapp_core.models.naive_v2_engine import classify_seq_v2
+                with open(naive_model_path, "rb") as f:
+                    model_v2 = pickle.load(f)
+                with open(taxonomy_file, "w") as fout:
+                    for i, record in enumerate(SeqIO.parse(nonchimera_fasta, "fasta")):
+                        seq_id, taxon = classify_seq_v2(record.id, str(record.seq).upper(), model_v2)
+                        fout.write(f"{seq_id}\t{taxon or 'Unclassified'}\n")
+                        if (i+1) % 1000 == 0:
+                            print(f"  ↳ {i+1} sequences classified")
+                            gc.collect()
 
             # ----------------------------------------------------
             # KRAKEN-LITE
             # ----------------------------------------------------
             elif classifier == "kraken-lite":
 
-                print("🚀 Kraken-lite classifier activated")
-
                 from metagenapp_core.models.kraken_lite import classify_kraken_parallel
-                from metagenapp.metagen_config import KRAKEN_INDEX_PATH
+                from metagenapp.metagen_config import KRAKEN_INDEX_PATH, KRAKEN_INDEX_PATH_18S
                 import pickle
                 import os
 
-                print(f"📂 Loading Kraken index from: {KRAKEN_INDEX_PATH}")
+                kraken_index = KRAKEN_INDEX_PATH_18S if marker == "18S" else KRAKEN_INDEX_PATH
 
-                if not os.path.exists(KRAKEN_INDEX_PATH):
-                    raise RuntimeError(f"❌ Kraken index not found: {KRAKEN_INDEX_PATH}")
+                if not os.path.exists(kraken_index):
+                    if marker == "18S":
+                        raise RuntimeError(
+                            f"Índice PR2 no encontrado: {kraken_index}\n"
+                            "  Constrúyelo con: python3 scripts/rebuild_kraken_pr2.py"
+                        )
+                    raise RuntimeError(f"Kraken index not found: {kraken_index}")
 
-                with open(KRAKEN_INDEX_PATH, "rb") as f:
+                with open(kraken_index, "rb") as f:
                     kraken_model = pickle.load(f)
-
-                # 🔬 DEBUG CRÍTICO (esto nos dice TODO)
-                print("🧠 Kraken model loaded:")
-                print(f"   - k-mer size: {kraken_model.get('k')}")
-                print(f"   - total taxa: {len(kraken_model.get('taxonomy', []))}")
-                print(f"   - total k-mers: {len(kraken_model.get('kmer_index', {}))}")
 
                 classify_kraken_parallel(
                     fasta_path=nonchimera_fasta,
@@ -659,9 +774,6 @@ def run_pipeline(
             raise RuntimeError(f"Taxonomic classification failed: {e}")
 
         end_step(success=True)
-
-        print("✔ Taxonomic classification completed successfully")
-        print(f"  Output: {taxonomy_file}")
 
     # ============================================================
     # Step 15 — Remove unwanted lineages
@@ -695,8 +807,6 @@ def run_pipeline(
             raise
 
         end_step(success=True)
-        print("✔ Unwanted lineages removed successfully")
-        print(f"  Remaining FASTA: {final_fasta}")
 
     # ============================================================
     # Step 16 — Taxonomic summary
@@ -715,8 +825,6 @@ def run_pipeline(
             end_step(success=False)
             raise
         end_step(success=True)
-        print("✔ Taxonomic summary generated successfully")
-        print(f"  Summary file: {summary_tax_file}")
 
     # ============================================================
     # Step 17 — Generate 97% OTUs
@@ -735,8 +843,6 @@ def run_pipeline(
             end_step(success=False)
             raise
         end_step(success=True)
-        print("✔ 97% OTUs generated successfully")
-        print(f"  OTU table: {otu_table}")
 
     # ============================================================
     # Step 18 — Final ASV table
@@ -750,8 +856,6 @@ def run_pipeline(
             end_step(success=False)
             raise
         end_step(success=True)
-        print("✔ Final ASV table generated successfully")
-        print(f"  ASV table: {final_asv_table}")
 
     # ============================================================
     # Step 25 — Assign taxonomy to ASVs
@@ -769,8 +873,6 @@ def run_pipeline(
             end_step(success=False)
             raise
         end_step(success=True)
-        print("✔ ASV taxonomy assigned successfully")
-        print(f"  Output: {asv_taxonomy}")
 
     # ============================================================
     # Step 26 — ASV Summary Table
@@ -789,12 +891,74 @@ def run_pipeline(
             end_step(success=False)
             raise
         end_step(success=True)
-        print("✔ ASV summary table generated successfully")
-        print(f"  Summary file: {asv_summary}")
 
     # ============================================================
     # Pipeline end
     # ============================================================
     if pipeline_success:
-        print("🧠💻 Pipeline completed successfully")
-        print(f"📁 Results written to: {outdir}")
+        elapsed   = time.time() - t_start
+        ram_mb    = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+
+        elapsed_m = int(elapsed) // 60
+        elapsed_s = int(elapsed) % 60
+
+        def _fsize(p):
+            try:
+                b = Path(p).stat().st_size
+                if b >= 1_000_000:
+                    return f"{b/1_000_000:.1f} MB"
+                if b >= 1_000:
+                    return f"{b/1_000:.1f} KB"
+                return f"{b} B"
+            except Exception:
+                return "—"
+
+        def _table_dims(p):
+            try:
+                with open(p) as fh:
+                    header = fh.readline()
+                    n_cols = len(header.split("\t"))
+                    n_otus = sum(1 for _ in fh)
+                # count_table: cols = ID + samples (no "total" column)
+                n_samples = n_cols - 1
+                return f"{n_otus:,} OTUs  ×  {n_samples} muestras"
+            except Exception:
+                return "—"
+
+        _CY = "\033[96m"   # cian neón
+        _MG = "\033[95m"   # magenta neón
+        _GR = "\033[92m"   # verde
+        _BL = "\033[94m"   # azul
+        _RS = "\033[0m"    # reset
+
+        def _dirsize(p):
+            try:
+                total = sum(f.stat().st_size for f in Path(p).rglob("*") if f.is_file())
+                if total >= 1_000_000_000:
+                    return f"{total/1_000_000_000:.2f} GB"
+                return f"{total/1_000_000:.1f} MB"
+            except Exception:
+                return "—"
+
+        print()
+        print(f"║{_MG}▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓▓{_RS}║")
+        print(f"║  {_CY}██████╗  ██████╗ ███╗  ██╗███████╗ ██╗{_RS}            ║")
+        print(f"║  {_CY}██╔══██╗██╔═══██╗████╗ ██║██╔════╝ ██║{_RS}            ║")
+        print(f"║  {_CY}██║  ██║██║   ██║██╔██╗██║█████╗   ██║{_RS}            ║")
+        print(f"║  {_CY}██║  ██║██║   ██║██║╚████║██╔══╝   ╚═╝{_RS}            ║")
+        print(f"║  {_CY}██████╔╝╚██████╔╝██║ ╚███║███████╗ ██╗{_RS}            ║")
+        print(f"║  {_CY}╚═════╝  ╚═════╝ ╚═╝  ╚══╝╚══════╝ ╚═╝{_RS}            ║")
+        print(f"║{_MG}▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓▓{_RS}║")
+        print()
+        print("  ── RESULTADOS ──────────────────────────────────────")
+        print(f"  {_GR}📂 Carpeta      {outdir}{_RS}")
+        print(f"  📊 Tabla ASV    {_fsize(final_asv_table)}  ·  {_table_dims(final_asv_table)}")
+        print(f"  🏷  Taxonomía    {_fsize(asv_taxonomy)}")
+        print(f"  📋 Resumen      {_fsize(asv_summary)}")
+        print()
+        print("  ── MÉTRICAS ─────────────────────────────────────────")
+        print(f"  ⏱  Tiempo total  {_BL}{elapsed_m}m {elapsed_s:02d}s{_RS}")
+        print(f"  🧠 RAM máxima    {ram_mb:.0f} MB  ({ram_mb/1024:.2f} GB)")
+        print(f"  💾 Carpeta       {_dirsize(outdir)}")
+        print("  ─────────────────────────────────────────────────────")
+        print()

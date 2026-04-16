@@ -39,10 +39,15 @@ METAGEN_REFS = REFERENCE_ROOT / "metagenapp_refs"
 
 REF_16S_ROOT = METAGEN_REFS / "16S"
 
-NAIVE_MODEL_PATH = "/data/databases/metagenapp_refs/16S/naive_model_v4.pkl"
 
-# Índice kraken-lite — SILVA 138.2 NR99 Bacteria+Archaea (451k seqs, 83k taxa)
-KRAKEN_INDEX_PATH = REF_16S_ROOT / "kraken_index_silva.pkl"
+# Índice kraken-lite — SILVA 138.2 NR99 Bacteria+Archaea, genus-balanced (max 150 seqs/genus), k=13, TF-IDF
+KRAKEN_INDEX_PATH = REF_16S_ROOT / "kraken_index_silva_v3.pkl"
+
+# Índice v2 — mismo trainset sin balanceo (backup)
+# KRAKEN_INDEX_PATH = REF_16S_ROOT / "kraken_index_silva_v2.pkl"
+
+# Índice anterior — mismo trainset pero k=12 (backup)
+# KRAKEN_INDEX_PATH = REF_16S_ROOT / "kraken_index_silva.pkl"
 
 # Índice anterior (V4 only, ~7500 taxa) — backup
 # KRAKEN_INDEX_PATH = REF_16S_ROOT / "kraken_index_v4.pkl"
@@ -62,9 +67,75 @@ SILVA_REFERENCE_ALN = REF_16S_ROOT / "silva_reference_aligned.fasta"
 REF_18S_ROOT = METAGEN_REFS / "18S"
 
 PR2_NAIVE_MODEL_PATH = REF_18S_ROOT / "naive_pr2_model.pkl"
-PR2_REFERENCE = REF_18S_ROOT / "pr2_reference.fasta"
+PR2_REFERENCE        = REF_18S_ROOT / "pr2_reference.fasta"
+
+# Índice kraken-lite — PR2 v5.1.1 (18S, eucariotas)
+# Construir con: python3 scripts/rebuild_kraken_pr2.py
+KRAKEN_INDEX_PATH_18S = REF_18S_ROOT / "kraken_index_pr2.pkl"
 
 HIERARCHY_ROOT_18S = REF_18S_ROOT / "hierarchy"  # futuro
+
+# =====================================================
+# NAIVE-V2 MODEL REGISTRY
+# Mapea (marker, model_type) → ruta del modelo .pkl
+# Para agregar un nuevo tipo: añadir entrada aquí y
+# entrenar con metagenapp-train --model-type <tipo>.
+# =====================================================
+
+_MODELS_16S = REF_16S_ROOT / "models"
+_MODELS_18S = REF_18S_ROOT / "models"
+
+NAIVE_MODELS = {
+    "16S": {
+        "general": REF_16S_ROOT / "naive_model_v4.pkl",              # disponible (1,949 taxa)
+        "silva":   _MODELS_16S  / "naive_model_silva_v1.pkl",        # SILVA 138 NR99 full-scale — entrenar
+        "oral":    _MODELS_16S  / "naive_model_oral_v1.pkl",         # HOMD — disponible
+        "gut":     _MODELS_16S  / "naive_model_gut_v1.pkl",          # SILVA gut — pendiente
+        "skin":    _MODELS_16S  / "naive_model_skin_v1.pkl",         # HMP skin — pendiente
+        "env":     _MODELS_16S  / "naive_model_env_v1.pkl",          # SILVA ambiental — pendiente
+    },
+    "18S": {
+        "general": REF_18S_ROOT / "naive_pr2_model.pkl",      # disponible
+    },
+}
+
+VALID_MODEL_TYPES = {"general", "silva", "oral", "gut", "skin", "env"}
+
+# Alias de compatibilidad — apunta al modelo general actual
+NAIVE_MODEL_PATH = str(NAIVE_MODELS["16S"]["general"])
+
+
+def get_naive_model_path(marker: str = "16S", model_type: str = "general") -> Path:
+    """
+    Resuelve la ruta del modelo naive-v2 según marcador y tipo de muestra.
+
+    Raises:
+        ValueError        — model_type no registrado para ese marker
+        FileNotFoundError — modelo no entrenado aún
+    """
+    marker_registry = NAIVE_MODELS.get(marker.upper())
+    if marker_registry is None:
+        raise ValueError(
+            f"Marker '{marker}' sin modelos registrados. "
+            f"Disponibles: {list(NAIVE_MODELS.keys())}"
+        )
+
+    path = marker_registry.get(model_type.lower())
+    if path is None:
+        raise ValueError(
+            f"Tipo '{model_type}' no registrado para {marker}. "
+            f"Disponibles: {list(marker_registry.keys())}"
+        )
+
+    path = Path(path)
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Modelo '{model_type}' para {marker} no encontrado en:\n  {path}\n"
+            f"Entrénalo con: metagenapp-train --marker {marker} --model-type {model_type}"
+        )
+
+    return path
+
 
 # =====================================================
 # TRAINSET (si aún lo usas)
