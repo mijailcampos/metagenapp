@@ -81,7 +81,7 @@ class PipelineRequest(BaseModel):
     @field_validator("classifier")
     @classmethod
     def validate_classifier(cls, v):
-        valid = {"flat", "naive-v2", "kraken-lite", "pro-engine"}
+        valid = {"flat", "naive-v2", "kraken-lite", "pro-engine", "metaspecies"}
         if v not in valid:
             raise ValueError(f"classifier debe ser uno de: {valid}")
         return v

@@ -87,6 +87,7 @@ flat        simple taxonomy assigner
 naive-v2    parallel Naive Bayes classifier
 kraken-lite k-mer + LCA classifier (Kraken-style)
 pro-engine  high-resolution MetagenApp engine
+metaspecies SSI+ANI species-level classifier
 """
     ),
 
@@ -241,13 +242,14 @@ env      environmental samples (SILVA full)
         "flat",
         "naive-v2",
         "kraken-lite",
-        "pro-engine"
+        "pro-engine",
+        "metaspecies",
     }
 
     if classifier not in valid_classifiers:
 
         typer.echo(f"❌ Invalid classifier: {classifier}")
-        typer.echo("Valid options: flat | naive-v2 | kraken-lite | pro-engine")
+        typer.echo("Valid options: flat | naive-v2 | kraken-lite | pro-engine | metaspecies")
 
         raise typer.Exit(code=1)
 

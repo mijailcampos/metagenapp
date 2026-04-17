@@ -1,3 +1,4 @@
+import os
 import time
 import resource
 from pathlib import Path
@@ -729,7 +730,6 @@ def run_pipeline(
                 from metagenapp_core.models.kraken_lite import classify_kraken_parallel
                 from metagenapp.metagen_config import KRAKEN_INDEX_PATH, KRAKEN_INDEX_PATH_18S
                 import pickle
-                import os
 
                 kraken_index = KRAKEN_INDEX_PATH_18S if marker == "18S" else KRAKEN_INDEX_PATH
 
@@ -751,6 +751,32 @@ def run_pipeline(
                     threads=threads
                 )
                 
+            # ----------------------------------------------------
+            # METASPECIES (SSI+ANI species-level)
+            # ----------------------------------------------------
+            elif classifier == "metaspecies":
+
+                print("🔬 MetaSpecies classifier activated (SSI+ANI)")
+
+                from metagenapp.pipeline.metaspecies_classify import classify_fasta_to_taxonomy
+
+                DEFAULT_REF = "/data/projects/metaspecies/data/ref_index_silva"
+                ref_dir = os.environ.get("METASPECIES_REF_DIR", DEFAULT_REF)
+
+                def _ms_progress(current, total, msg=""):
+                    if msg:
+                        print(f"  ↳ {msg}")
+
+                result_path, error = classify_fasta_to_taxonomy(
+                    fasta_path=str(nonchimera_fasta),
+                    ref_dir=ref_dir,
+                    output_path=str(taxonomy_file),
+                    progress_callback=_ms_progress,
+                )
+
+                if not result_path:
+                    raise RuntimeError(f"MetaSpecies classification failed: {error}")
+
             # ----------------------------------------------------
             # PRO ENGINE
             # ----------------------------------------------------
