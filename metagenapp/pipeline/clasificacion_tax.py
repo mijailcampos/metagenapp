@@ -6,7 +6,7 @@ import time
 from multiprocessing import Pool
 from Bio import SeqIO
 import pandas as pd
-from metagenapp.metagen_config import NAIVE_MODEL_PATH
+from metagenapp.metagen_config import NAIVE_MODEL_PATH, SILVA_TRAINSET_TAX
 
 
 # ============================================================
@@ -303,3 +303,123 @@ def convertir_sintax_a_mothur(tabbed_file, salida_final):
     df = df[["seq_id", "taxonomy"]]
 
     df.to_csv(salida_final, sep="\t", header=False, index=False)
+
+
+# ============================================================
+# 5. ALIGNMENT FALLBACK
+# Upgrades features that didn't reach genus level by using
+# the best edlib alignment hit against the SILVA reference.
+# Only called in ref mode after naive-v2 classification.
+# ============================================================
+
+def _taxonomy_depth(tax_str: str) -> int:
+    """Count non-empty levels in a semicolon-separated taxonomy string."""
+    return sum(1 for p in tax_str.split(";") if p.strip())
+
+
+def apply_alignment_fallback(
+    taxonomy_file: str,
+    edlib_tsv: str,
+    silva_tax_file: str = None,
+    min_identity: float = 0.94,
+    genus_level: int = 6,
+) -> dict:
+    """
+    For features classified below genus level, attempt to assign taxonomy
+    from the best edlib alignment hit if identity >= min_identity.
+
+    Works for any 16S sample type (pharyngeal, gut, skin, environmental)
+    because SILVA NR99 covers all environments.
+
+    min_identity=0.94 is appropriate for genus-level assignment in 16S
+    (97% = species, 94-95% = genus, per Yarza et al. 2014).
+
+    Modifies taxonomy_file in-place.
+    Returns stats dict with keys: n_total, n_below_genus, n_upgraded.
+    """
+    if silva_tax_file is None:
+        silva_tax_file = str(SILVA_TRAINSET_TAX)
+
+    if not os.path.exists(silva_tax_file):
+        print(f"   [fallback] WARNING: SILVA taxonomy not found at {silva_tax_file} — skipping fallback")
+        return {"n_total": 0, "n_below_genus": 0, "n_upgraded": 0}
+
+    if not os.path.exists(edlib_tsv):
+        print(f"   [fallback] WARNING: edlib TSV not found — skipping fallback")
+        return {"n_total": 0, "n_below_genus": 0, "n_upgraded": 0}
+
+    # Load SILVA taxonomy indexed by bare accession (no version, no region coords).
+    # SILVA keys look like "AY727530_1_1478"; edlib ref_ids look like "AY727530.1".
+    # We strip to the raw accession for matching.
+    print("   [fallback] Loading SILVA taxonomy index...")
+    silva_tax = {}   # accession -> taxonomy string up to genus
+    with open(silva_tax_file) as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split("\t")
+            if len(parts) < 2:
+                continue
+            raw_key = parts[0]                          # e.g. AY727530_1_1478
+            accession = raw_key.split("_")[0]           # e.g. AY727530
+            tax = parts[1].rstrip(";")
+            levels = [p.strip() for p in tax.split(";") if p.strip()]
+            if len(levels) >= genus_level and accession not in silva_tax:
+                silva_tax[accession] = ";".join(levels[:genus_level])
+    print(f"   [fallback] {len(silva_tax):,} accessions indexed")
+
+    # Load edlib TSV: query -> (ref_id, identity)  — keep best hit per query
+    print("   [fallback] Loading edlib alignment hits...")
+    best_hit = {}
+    with open(edlib_tsv) as fh:
+        header = fh.readline()  # skip header
+        for line in fh:
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) < 3:
+                continue
+            query, ref_id, identity = parts[0], parts[1], float(parts[2])
+            if identity >= min_identity:
+                if query not in best_hit or identity > best_hit[query][1]:
+                    best_hit[query] = (ref_id, identity)
+    print(f"   [fallback] {len(best_hit):,} hits above identity {min_identity}")
+
+    # Read current taxonomy, upgrade where needed
+    entries = []
+    with open(taxonomy_file) as fh:
+        for line in fh:
+            line = line.rstrip("\n")
+            if not line:
+                continue
+            parts = line.split("\t", 1)
+            seq_id = parts[0]
+            tax    = parts[1] if len(parts) > 1 else "Unclassified"
+            entries.append([seq_id, tax])
+
+    n_total       = len(entries)
+    n_below_genus = 0
+    n_upgraded    = 0
+
+    for entry in entries:
+        seq_id, tax = entry
+        if _taxonomy_depth(tax) < genus_level:
+            n_below_genus += 1
+            hit = best_hit.get(seq_id)
+            if hit:
+                ref_id, identity = hit
+                # edlib ref_id is like "AY727530.1" — strip version suffix to get accession
+                accession = ref_id.split(".")[0]
+                fallback_tax = silva_tax.get(accession)
+                if fallback_tax:
+                    entry[1] = fallback_tax
+                    n_upgraded += 1
+
+    # Write back
+    with open(taxonomy_file, "w") as fh:
+        for seq_id, tax in entries:
+            fh.write(f"{seq_id}\t{tax}\n")
+
+    print(f"   [fallback] {n_below_genus} features below genus | "
+          f"{n_upgraded} upgraded ({100*n_upgraded/n_total:.1f}% of total)")
+
+    return {"n_total": n_total, "n_below_genus": n_below_genus, "n_upgraded": n_upgraded}

@@ -144,6 +144,9 @@ def get_naive_model_path(marker: str = "16S", model_type: str = "general") -> Pa
 TRAINSET_FASTA = REFERENCE_ROOT / "16S_refseq_rdp" / "trainset9_032012.pds.fasta"
 TRAINSET_TAX = REFERENCE_ROOT / "16S_refseq_rdp" / "trainset9_032012.pds.tax"
 
+# SILVA 138 NR99 — trainset taxonomy usado por naive-v2 y alignment fallback
+SILVA_TRAINSET_TAX = METAGEN_REFS / "trainset_silva" / "SILVA_NR99_BacArc.tax"
+
 SINTAX_TRAINSET = TRAINSET_FASTA
 TAX_FILE = TRAINSET_TAX
 

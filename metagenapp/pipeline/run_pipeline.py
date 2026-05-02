@@ -722,6 +722,22 @@ def run_pipeline(
                             print(f"  ↳ {i+1} sequences classified")
                             gc.collect()
 
+                # Alignment fallback — only in ref mode (edlib TSV already exists).
+                # Upgrades features that didn't reach genus level using the best
+                # edlib hit (min_identity=0.94, appropriate for genus in 16S).
+                # Non-fatal: a failure here logs a warning but does not abort the run.
+                edlib_tsv_path = outdir / "centroids_vs_reference.edlib.tsv"
+                if mode == "ref" and edlib_tsv_path.exists():
+                    try:
+                        print("\n   [fallback] Applying alignment fallback for sub-genus features...")
+                        from metagenapp.pipeline.clasificacion_tax import apply_alignment_fallback
+                        apply_alignment_fallback(
+                            taxonomy_file=str(taxonomy_file),
+                            edlib_tsv=str(edlib_tsv_path),
+                        )
+                    except Exception as fb_err:
+                        print(f"   [fallback] WARNING: fallback failed ({fb_err}) — continuing without it")
+
             # ----------------------------------------------------
             # KRAKEN-LITE
             # ----------------------------------------------------
