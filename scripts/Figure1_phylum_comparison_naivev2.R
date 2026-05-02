@@ -7,13 +7,13 @@ library(tidyverse)
 
 # Genus resolution labels for annotation (% of OTUs classified to genus level)
 genus_resolution <- c(
-  "MetagenApp (SILVA v1)" = 90.4,
+  "MetagenApp (SILVA v1)" = 91.1,
   "Mothur"               = 100.0,
   "QIIME2"               = 98.0
 )
 
 metagen <- read.table(
-  "/data/results/runs/ref_runs/faringe_nariz_20260414_1645/summary_tax_phylum.tsv",
+  "/data/results/runs/ref_runs/faringe_nariz_20260502_v1/summary_tax_phylum.tsv",
   header=TRUE, sep="\t", check.names=FALSE
 )
 

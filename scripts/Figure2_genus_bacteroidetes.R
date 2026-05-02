@@ -11,7 +11,7 @@ suppressPackageStartupMessages({
 })
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-SILVA_RUN  <- "/data/results/runs/ref_runs/faringe_nariz_20260414_1645"
+SILVA_RUN  <- "/data/results/runs/ref_runs/faringe_nariz_20260502_v1"
 MOTH_RUN   <- "/data/results/runs/01_benchmarking/paper01_faringe_mothur"
 Q2_RUN     <- "/data/results/runs/01_benchmarking/qiime2_faringe"
 
