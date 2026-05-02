@@ -1,0 +1,8 @@
+Category	MetagenApp (SILVA v1)	Mothur	QIIME2
+Genus (real)	82.5	96.8	97.9
+Classified above genus
+(LCA stopped at phylum/class/order/family)	7.9	0	2
+Forced genus
+(Wang _unclassified suffix)	0	3.2	0
+Unclassifiable
+(no confident assignment at any level)	9.6	0	0.1

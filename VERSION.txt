@@ -1,0 +1,3 @@
+MetagenApp v1.0
+Commit: 8228551d3fc8599aa414d26a313a126b546771bd
+Date: 2026-05-02

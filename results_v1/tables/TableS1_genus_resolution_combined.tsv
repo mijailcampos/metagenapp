@@ -1,0 +1,4 @@
+Pipeline	Clasificado (reads)	Ambiguo/propagado (reads)	No clasificado (reads)	Features	Géneros únicos	Clasificado (features)	Ambiguo/propagado (features)	No clasificado (features)
+MetagenApp	91.2%	3.8%	5.0%	14868	609	80.0%	11.2%	8.8%
+mothur	93.6%	6.4%	0.0%	10389	572	83.5%	16.5%	0.0%
+QIIME 2	97.7%	0.3%	2.0%	2062	154	94.6%	1.0%	4.4%

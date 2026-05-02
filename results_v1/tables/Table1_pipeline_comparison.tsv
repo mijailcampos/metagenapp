@@ -1,0 +1,9 @@
+Parameter	MetagenApp (SILVA v1)	MetagenApp (v4)	Mothur	QIIME2
+Clustering algorithm	VSEARCH 97% OTU	VSEARCH 97% OTU	OptiClust 97% OTU	DADA2 (ASV)
+Input reads	1519852	1519852	1519852	1519852
+Retained reads	1149967	1147591	1145172	191568
+Retention (%)	75.7	75.5	75.4	12.6
+OTUs / ASVs	14876	15080	10473	2098
+Taxonomic DB	SILVA 138 NR99 k-mer (83K taxa)	SILVA 138 k-mer (1949 taxa)	SILVA 138 Wang bootstrap	SILVA 138 sklearn NB
+Genus resolution (%)	91.1	74.5	~100	~98
+Samples	36	36	36	36

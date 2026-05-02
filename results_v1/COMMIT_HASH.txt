@@ -1,0 +1,14 @@
+commit: 8228551d3fc8599aa414d26a313a126b546771bd
+tag: v1.0
+date: 2026-05-02 03:12:25 +0000
+author: José Mijail Campos Compeán
+message: feat: freeze MetagenApp v1.0 — manuscript version (May 2026)
+
+run:
+  input:  /data/samuel_raw_fastq/
+  output: /data/results/runs/ref_runs/faringe_nariz_20260502_v1/
+  command: /usr/bin/time -v metagenapp -i raw_fastq/ -o results_v1/ --threads 16 --mode ref
+
+reproduce:
+  git clone https://github.com/mijailcampos/metagenapp
+  git checkout v1.0

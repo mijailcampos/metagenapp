@@ -1,0 +1,4 @@
+Resource	MetagenApp (SILVA v1)	MetagenApp (v4)	Mothur	QIIME2
+Wall-clock time	19m 32s	9m 03s	7h 00m 05s	28m 34s
+Max RAM (GB)	5.3	1.67	53.4	14.0
+CPU threads	16	16	multicore (1200%)	multicore (627%)

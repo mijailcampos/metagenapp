@@ -31,3 +31,10 @@ build/
 # Logs de herramientas
 mothur.*.logfile
 profiles.yaml
+
+# Web UI (repo separado: metagenapp-ui)
+frontend/
+
+# Excepciones: trackear datos de ejemplo y logs del benchmark
+!example_data/*.fastq.gz
+!results_v1/logs/

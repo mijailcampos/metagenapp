@@ -1,208 +1,193 @@
 # MetagenApp
 
-Pipeline de **metabarcoding 16S/18S** desarrollado como alternativa a Mothur y QIIME2.
-Clasifica taxonómicamente secuencias de ADN ribosomal desde muestras microbianas,
-produciendo tablas de OTUs/ASVs con anotación taxonómica.
+**MetagenApp** is a 16S/18S metabarcoding pipeline that classifies microbial
+communities from paired-end Illumina reads, producing OTU tables with taxonomic
+annotation. It is designed to be fast, resource-efficient, and reproducible.
 
-Desarrollado por Mijail Campos.
-
----
-
-## Ventajas frente a Mothur / QIIME2
-
-- Clasificador propio (`naive-v2`) basado en índice invertido de k-mers con confianza estilo Wang
-- Extremadamente eficiente en recursos: **9 min y 1.67 GB RAM** vs 97 min / 49.9 GB de Mothur (mismo dataset)
-- Soporte para múltiples modelos de referencia: general, oral, gut, skin, env
-- CLI moderna con perfiles configurables
-
----
-
-## Estructura del Proyecto
-
-```
-MetagenApp/
-├── metagenapp/                    # Capa CLI y orquestación del pipeline
-│   ├── cli/main.py                # Entry point: CLI con Typer
-│   ├── pipeline/
-│   │   ├── run_pipeline.py        # Orquestador: 26 pasos secuenciales
-│   │   ├── clasificacion_tax.py   # Coordinación de clasificadores
-│   │   ├── aggregate_cluster_counts.py  # Suma reads UC → centroides
-│   │   └── [módulos por paso]
-│   └── metagen_config.py          # Configuración global y rutas
-│
-├── metagenapp_core/               # Motores de clasificación
-│   ├── models/
-│   │   ├── naive_v2.py            # Clasificador naive-v2 (paralelismo fork)
-│   │   ├── naive_v2_engine.py     # Motor: Wang-style bootstrap confidence
-│   │   ├── kraken_lite.py         # Wrapper paralelo kraken-lite
-│   │   └── kraken_lite_engine.py  # Motor: votación k-mer + LCA
-│   └── utils/
-│       ├── kmers.py               # Generación de k-mers
-│       └── taxonomy.py            # Cálculo de LCA
-│
-└── scripts/                       # Entrenamiento, benchmarks, figuras
-    ├── train_naive_v2.py
-    ├── build_homd_trainset.py
-    ├── Figure1_phylum_comparison_naivev2.R
-    └── Figure2_genus_bacteroidetes.R
-```
-
----
-
-## Pipeline: 26 pasos
-
-Toma **pares de FASTQ** (paired-end Illumina) y produce **tablas de abundancia con taxonomía**.
-
-```
-FASTQ R1 + R2
-    ↓
-[01] Ensamblado (VSEARCH mergepairs)
-    ↓
-[02] Filtrado (largo 250–600 bp, sin ambigüedades)
-    ↓
-[03] Unicización (deduplicación + conteo por muestra)
-    ↓
-[04] Alineamiento a referencia (VSEARCH, 70% identidad)
-    ↓
-[09] Recorte de la región de interés
-    ↓
-[10] Clustering 97% → centroides + archivo UC
-    ↓
-[11] Extracción de centroides (modo-dependiente)
-    ↓
-[12–18] Alineamiento MAFFT + filtrado + chimeras
-         (solo modes student/premium/turbo)
-    ↓
-[20] Clasificación taxonómica  ← corazón del pipeline
-    ↓
-[21] Remoción de linajes (cloroplastos, mitocondrias)
-    ↓
-[22] Resumen por filo (summary_tax_phylum.tsv)
-    ↓
-[23–26] Tablas OTU/ASV finales
-```
-
-### Modos de ejecución
-
-| Modo    | Descripción                          | Centroides máx |
-|---------|--------------------------------------|----------------|
-| student | Rápido, bajo consumo                 | 10,000         |
-| premium | Balanceado                           | Todos          |
-| turbo   | Máximo rendimiento                   | Todos          |
-| ref     | Grado publicación (EDLib, sin MAFFT) | Todos          |
-| qa      | Solo control de calidad              | —              |
-
----
-
-## Clasificador naive-v2
-
-### Algoritmo (Wang-style bootstrap)
-
-1. Extracción de k-mers de la secuencia query
-2. Filtrado: descartar k-mers con `psize ≥ 20` (demasiado genéricos)
-3. Clasificación real: sumar pesos por taxón en cada nivel taxonómico
-4. Bootstrap (100 iteraciones): remuestrear pool de k-mers con reemplazo → contar qué taxón gana
-5. Asignación al nivel taxonómico más profundo con confianza ≥ 80%
-
-**Parámetros clave:**
-- `psize_max=20` — ignorar k-mers presentes en más de 20 taxa
-- `confidence=0.80` — umbral de confianza para asignar
-- `n_bootstrap=100` — iteraciones de remuestreo
-
-### Modelos disponibles
-
-| Modelo | Taxa | K-mers únicos | Ruta |
-|--------|------|---------------|------|
-| General v4 | 1,949 | 1,606,675 | `/data/databases/metagenapp_refs/16S/naive_model_v4.pkl` |
-| Oral v1 (HOMD) | 802 | 343,773 | `/data/databases/metagenapp_refs/16S/models/naive_model_oral_v1.pkl` |
-
-### Resolución a nivel de género
-
-| Método | Resolución a género |
-|--------|---------------------|
-| MetagenApp LCA (anterior) | 42.4% |
-| MetagenApp Wang bootstrap (actual) | **74.5%** |
-| QIIME2 | ~98% |
-| Mothur | ~100% |
-
-La brecha se debe a cobertura del reference (1,949 taxa vs ~50,000 en SILVA).
-Con modelo SILVA-scale se espera >95%.
-
----
-
-## Clasificador Kraken-lite
-
-Implementación propia del algoritmo de Kraken:
-
-1. Genera k-mers (k=31, codificados como enteros 2-bit)
-2. Busca en índice → votos por taxón
-3. Filtra ruido (votos < 0.5% del total)
-4. Voto mayoritario jerárquico: Order → Phylum
-5. Si confianza ≥ 0.30 → asignar; si no, LCA de top 10 taxa
-
-**Modelo:** SILVA 138.2 NR99, 451k secuencias, 83k taxa
-**Ruta:** `/data/databases/metagenapp_refs/16S/kraken_index_silva.pkl`
-
----
-
-## Uso (CLI)
-
-```bash
-metagenapp --input ./fastq --outdir ./results [opciones]
-
-# Opciones principales:
---mode        student|premium|turbo|ref|qa
---classifier  flat|naive-v2|kraken-lite|pro-engine
---marker      16S|18S
---model-type  general|oral|gut|skin|env
---threads     N (default: 8)
---from-step   NOMBRE_PASO  # reanudar desde un paso específico
-
-# Con perfil (auto-genera directorio de salida con timestamp):
-metagenapp --profile ref --input ./fastq
-```
-
-### profiles.yaml
-
-```yaml
-profiles:
-  ref:
-    mode: ref
-    threads: 16
-    output_base: /data/results/runs/ref_runs
-```
+Developed by José Mijail Campos Compeán.
 
 ---
 
 ## Benchmark: MetagenApp vs Mothur vs QIIME2
 
-Dataset: faringe (36 muestras, 1,519,852 reads entrada).
+Dataset: pharyngeal microbiome, 36 samples, 1,519,852 input reads.
 
-### Comparación de pipelines
+### Table 1 — Pipeline comparison
 
-| Parámetro | MetagenApp | Mothur | QIIME2 |
-|-----------|------------|--------|--------|
-| Algoritmo clustering | VSEARCH 97% | OptiClust 97% | DADA2 (ASV) |
-| Reads retenidos | 1,147,591 (75.5%) | 1,145,172 (75.4%) | 191,568 (12.6%) |
-| OTUs / ASVs | 15,080 | 10,473 | 2,098 |
-| DB taxonómica | SILVA 138 (k-mer) | SILVA 138 (Wang) | SILVA 138 (sklearn NB) |
+| Parameter | MetagenApp (SILVA v1) | Mothur | QIIME2 |
+|---|---|---|---|
+| Clustering algorithm | VSEARCH 97% | OptiClust 97% | DADA2 (ASV) |
+| Reads retained | 1,149,967 (75.7%) | 1,145,172 (75.4%) | 191,568 (12.6%) |
+| OTUs / ASVs | 14,876 | 10,473 | 2,098 |
+| Taxonomic DB | SILVA 138 NR99 (k-mer, 83K taxa) | SILVA 138 (Wang) | SILVA 138 (sklearn NB) |
+| Genus resolution | **91.1%** | ~100% | ~98% |
 
-### Recursos computacionales
+### Table 2 — Computational resources
 
-| Recurso | MetagenApp | Mothur | QIIME2 |
-|---------|------------|--------|--------|
-| Tiempo total | **9 min 03s** | 1h 37m 21s | 27 min 24s |
-| RAM máxima | **1.67 GB** | 49.9 GB | 14.0 GB |
+| Resource | MetagenApp (SILVA v1) | Mothur | QIIME2 |
+|---|---|---|---|
+| Total time | **19 min 32s** | 7h 00m 05s | 28m 34s |
+| Peak RAM | **5.3 GB** | 53.4 GB | 14.0 GB |
 | CPUs | 16 | multicore | multicore |
 
-### Distribución de filos (read-weighted)
+MetagenApp is **22x faster** and uses **10x less RAM** than Mothur with comparable taxonomic resolution.
 
-| Filo | QIIME2 | Mothur | MetagenApp oral | MetagenApp general |
-|------|--------|--------|-----------------|-------------------|
-| Proteobacteria | 35.9% | 36.4% | 34.7% | 34.4% |
-| Firmicutes | 38.6% | 37.3% | 33.5% | 37.2% |
-| Bacteroidetes | 14.2% | 15.5% | 18.5% | 18.5% |
-| Actinobacteria | 5.0% | 5.5% | 4.6% | 4.5% |
-| Fusobacteria | 4.2% | 4.2% | 4.1% | 4.3% |
+Benchmark data and figures are in [`results_v1/`](results_v1/).
 
-Los tres pipelines concuerdan a nivel de filo. No hay sesgo en MetagenApp.
+---
+
+## Features
+
+- Custom classifier (`naive-v2`) — Wang-style bootstrap k-mer confidence scoring
+- SILVA 138 NR99 model — 83,000 taxa, 91.1% genus resolution
+- Alignment fallback — EDLib pairwise alignment for borderline sequences (94% threshold, Yarza et al. 2014)
+- 26-step pipeline — merge → filter → cluster → classify → OTU table
+- Multiple execution modes: `student`, `premium`, `turbo`, `ref`, `qa`
+- Modern CLI with configurable profiles
+
+---
+
+## Installation
+
+### Requirements
+
+Python >= 3.9 and the following external tools:
+
+```
+vsearch >= 2.22    https://github.com/torognes/vsearch
+edlib              https://github.com/Martinsos/edlib  (ref mode)
+mafft >= 7.5       https://mafft.cbrc.jp/alignment/software/  (optional)
+```
+
+### Install
+
+```bash
+git clone https://github.com/mijailcampos/metagenapp
+cd metagenapp
+pip install -e .
+```
+
+Or with all Python dependencies:
+
+```bash
+pip install -r requirements.txt
+pip install -e .
+```
+
+---
+
+## Quick start
+
+```bash
+# Run on example data (3 samples, ~20k reads each)
+metagenapp -i example_data/ -o results/ --threads 4 --mode ref
+
+# Full run with a profile (auto-generates timestamped output directory)
+metagenapp --profile ref --input /path/to/fastq/
+
+# Resume from a specific step
+metagenapp -i data/ -o results/ --from-step clasificacion_tax
+```
+
+---
+
+## Pipeline overview
+
+26 sequential steps, from paired FASTQ to OTU table with taxonomy:
+
+```
+FASTQ R1 + R2
+    ↓ [01] Merge paired reads (VSEARCH mergepairs)
+    ↓ [02] Quality filter (length, ambiguities)
+    ↓ [03] Dereplicate + count per sample
+    ↓ [04] Reference alignment (VSEARCH, 70% identity)
+    ↓ [09] Trim region of interest
+    ↓ [10] Cluster at 97% → centroids + UC file
+    ↓ [11] Extract centroids (mode-dependent)
+    ↓ [12–18] MAFFT alignment + chimera removal (student/premium/turbo)
+    ↓ [20] Taxonomic classification  ←  core step
+    ↓ [21] Remove non-target lineages (chloroplasts, mitochondria)
+    ↓ [22–26] OTU table (per sample, merged)
+```
+
+### Execution modes
+
+| Mode | Description |
+|---|---|
+| `ref` | Publication grade — EDLib alignment, no MAFFT |
+| `premium` | Balanced — MAFFT alignment |
+| `turbo` | Max speed — no alignment |
+| `student` | Low resource — 10,000 centroid cap |
+| `qa` | Quality control only |
+
+---
+
+## Classifier: naive-v2
+
+Wang-style bootstrap confidence scoring over a k-mer inverted index.
+
+1. Extract k-mers from query sequence
+2. Discard k-mers with `psize >= 20` (too generic)
+3. Sum k-mer weights per taxon at each taxonomic level
+4. Bootstrap (100 iterations): resample k-mer pool → vote
+5. Assign deepest level with confidence >= 0.60
+
+**Model (v1.0):** SILVA 138 NR99, 83,000 taxa, confidence threshold 0.60.
+
+---
+
+## Repository structure
+
+```
+metagenapp/
+├── metagenapp/           # CLI and pipeline orchestration
+│   ├── cli/main.py       # Entry point (Typer)
+│   ├── pipeline/         # 26-step pipeline modules
+│   └── metagen_config.py # Global config and paths
+├── metagenapp_core/      # Classification engines
+│   ├── models/           # naive-v2, kraken-lite
+│   └── utils/            # k-mer generation, LCA
+├── scripts/              # Paper figures and model training
+│   ├── Figure*.R         # Benchmark figures
+│   ├── train_naive_v2.py # Train a new naive-v2 model
+│   ├── build_silva_trainset.py
+│   └── dev/              # Internal / experimental scripts
+├── results_v1/           # Benchmark results (v1.0)
+│   ├── tables/           # TSV tables (OTU, taxonomy, resources)
+│   ├── figures/          # PDF/PNG figures
+│   ├── logs/             # /usr/bin/time -v timing logs
+│   ├── raw_outputs/      # Pipeline outputs (MetagenApp, Mothur, QIIME2)
+│   └── COMMIT_HASH.txt   # Exact commit and command used
+├── example_data/         # 3 public 16S samples for testing (~20k reads)
+├── requirements.txt
+├── pyproject.toml
+├── VERSION.txt
+└── LICENSE
+```
+
+---
+
+## Reproducing the benchmark
+
+```bash
+git clone https://github.com/mijailcampos/metagenapp
+git checkout v1.0
+
+# See exact command and commit used:
+cat results_v1/COMMIT_HASH.txt
+```
+
+Benchmark run commit: `8228551d` — tag `v1.0`
+
+---
+
+## Citation
+
+> Campos Compeán, J.M. (2026). MetagenApp: a fast and resource-efficient 16S
+> metabarcoding pipeline with SILVA-scale taxonomic resolution. *Manuscript in preparation.*
+
+---
+
+## License
+
+See [LICENSE](LICENSE).
