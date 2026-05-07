@@ -8,13 +8,13 @@ Developed by José Mijail Campos Compeán.
 
 ---
 
-## Benchmark: MetagenApp vs Mothur vs QIIME2
+## Benchmark: MetagenApp vs Mothur vs QIIME 2
 
 Dataset: pharyngeal microbiome, 36 samples, 1,519,852 input reads.
 
 ### Table 1 — Pipeline comparison
 
-| Parameter | MetagenApp (SILVA v1) | Mothur | QIIME2 |
+| Parameter | MetagenApp (SILVA v1) | Mothur | QIIME 2 |
 |---|---|---|---|
 | Clustering algorithm | VSEARCH 97% | OptiClust 97% | DADA2 (ASV) |
 | Reads retained | 1,149,967 (75.7%) | 1,145,172 (75.4%) | 191,568 (12.6%) |
@@ -24,7 +24,7 @@ Dataset: pharyngeal microbiome, 36 samples, 1,519,852 input reads.
 
 ### Table 2 — Computational resources
 
-| Resource | MetagenApp (SILVA v1) | Mothur | QIIME2 |
+| Resource | MetagenApp (SILVA v1) | Mothur | QIIME 2 |
 |---|---|---|---|
 | Total time | **19 min 32s** | 7h 00m 05s | 28m 34s |
 | Peak RAM | **5.3 GB** | 53.4 GB | 14.0 GB |
@@ -156,7 +156,7 @@ metagenapp/
 │   ├── tables/           # TSV tables (OTU, taxonomy, resources)
 │   ├── figures/          # PDF/PNG figures
 │   ├── logs/             # /usr/bin/time -v timing logs
-│   ├── raw_outputs/      # Pipeline outputs (MetagenApp, Mothur, QIIME2)
+│   ├── raw_outputs/      # Pipeline outputs (MetagenApp, Mothur, QIIME 2)
 │   └── COMMIT_HASH.txt   # Exact commit and command used
 ├── example_data/         # 3 public 16S samples for testing (~20k reads)
 ├── requirements.txt
