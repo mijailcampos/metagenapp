@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+title: MetagenApp
+message: "If you use this software, please cite the associated manuscript."
+type: software
+authors:
+  - family-names: Campos Compeán
+    given-names: José Mijail
+repository-code: https://github.com/mijailcampos/metagenapp
+version: 1.0
+date-released: 2026-05-07
