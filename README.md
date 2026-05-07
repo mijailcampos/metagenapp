@@ -30,7 +30,7 @@ Dataset: pharyngeal microbiome, 36 samples, 1,519,852 input reads.
 | Peak RAM | **5.3 GB** | 53.4 GB | 14.0 GB |
 | CPUs | 16 | multicore | multicore |
 
-MetagenApp is **22x faster** and uses **10x less RAM** than Mothur with comparable taxonomic resolution.
+In this benchmark, MetagenApp completed the analysis substantially faster (22x faster) and with lower memory consumption (10x less RAM) than mothur.
 
 Benchmark data and figures are in [`results_v1/`](results_v1/).
 
@@ -172,6 +172,9 @@ metagenapp/
 ```bash
 git clone https://github.com/mijailcampos/metagenapp
 git checkout v1.0
+
+Frozen benchmark release:
+https://github.com/mijailcampos/metagenapp/releases/tag/v1.0
 
 # See exact command and commit used:
 cat results_v1/COMMIT_HASH.txt
