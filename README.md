@@ -51,7 +51,8 @@ Benchmark data and figures are in [`results_v1/`](results_v1/).
 
 ### Requirements
 
-Python >= 3.9 and the following external tools:
+- Python >= 3.9
+- The following external tools:
 
 ```
 vsearch >= 2.22    https://github.com/torognes/vsearch
@@ -59,20 +60,43 @@ edlib              https://github.com/Martinsos/edlib  (ref mode)
 mafft >= 7.5       https://mafft.cbrc.jp/alignment/software/  (optional)
 ```
 
+On Linux/Mac, install via conda:
+```bash
+conda install -c bioconda vsearch mafft
+pip install edlib
+```
+
 ### Install
 
 ```bash
 git clone https://github.com/mijailcampos/metagenapp
 cd metagenapp
-pip install -e .
-```
-
-Or with all Python dependencies:
-
-```bash
 pip install -r requirements.txt
 pip install -e .
 ```
+
+### Download models
+
+The SILVA v1 classifier (~2.3 GB) is hosted on Zenodo (DOI: [10.5281/zenodo.20076968](https://doi.org/10.5281/zenodo.20076968)):
+
+```bash
+python download_model.py
+```
+
+Models are saved to `~/.metagenapp/refs/` by default. To use a custom path:
+
+```bash
+python download_model.py --dest /path/to/refs
+export METAGENAPP_REFS=/path/to/refs  # add to ~/.bashrc
+```
+
+### Platform support
+
+| Platform | Support |
+|---|---|
+| Linux | Full |
+| macOS | Full (install tools via conda/brew) |
+| Windows | Requires WSL2 (vsearch has no native Windows binary) |
 
 ---
 

@@ -27,11 +27,15 @@ INPUT_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # =====================================================
-# 3️⃣ BASES EXTERNAS CENTRALIZADAS (PRODUCCIÓN)
+# 3️⃣ BASES EXTERNAS CENTRALIZADAS
+# Configurable via env var METAGENAPP_REFS.
+# Default: ~/.metagenapp/refs  (portable, user install)
+# Server override: export METAGENAPP_REFS=/data/databases/metagenapp_refs
 # =====================================================
 
-REFERENCE_ROOT = Path("/data/databases")
-METAGEN_REFS = REFERENCE_ROOT / "metagenapp_refs"
+_DEFAULT_REFS = Path.home() / ".metagenapp" / "refs"
+METAGEN_REFS = Path(os.getenv("METAGENAPP_REFS", _DEFAULT_REFS))
+REFERENCE_ROOT = METAGEN_REFS.parent  # kept for legacy references
 
 # =====================================================
 # 16S
@@ -131,7 +135,8 @@ def get_naive_model_path(marker: str = "16S", model_type: str = "general") -> Pa
     if not path.exists():
         raise FileNotFoundError(
             f"Modelo '{model_type}' para {marker} no encontrado en:\n  {path}\n"
-            f"Entrénalo con: metagenapp-train --marker {marker} --model-type {model_type}"
+            f"Descárgalo con: python download_model.py\n"
+            f"O configura METAGENAPP_REFS para apuntar a tus modelos existentes."
         )
 
     return path
