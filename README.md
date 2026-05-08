@@ -74,6 +74,16 @@ python download_model.py --dest /path/to/refs
 export METAGENAPP_REFS=/path/to/refs  # add to ~/.bashrc
 ```
 
+### Disk space
+
+| Component | Size |
+|---|---|
+| Repository | ~20 MB |
+| Conda environment | ~2–3 GB |
+| SILVA v1 model (Zenodo) | ~2.3 GB |
+| SILVA reference sequences | ~22 MB |
+| **Total** | **~5 GB** |
+
 ### Platform support
 
 | Platform | Support |
