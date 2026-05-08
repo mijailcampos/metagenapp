@@ -7,8 +7,14 @@ from datetime import datetime
 # Create Typer app
 # ============================================================
 app = typer.Typer(
-    help="MetagenApp CLI — reproducible metabarcoding pipeline",
-    invoke_without_command=True
+    help=(
+        "MetagenApp — Fast 16S/18S metabarcoding pipeline.\n\n"
+        "Classifies microbial communities from paired-end Illumina reads,\n"
+        "producing OTU tables with taxonomic annotation.\n\n"
+        "[dim]Tip: run [bold]metagenapp-launch[/bold] for the interactive menu.[/dim]"
+    ),
+    invoke_without_command=True,
+    rich_markup_mode="rich",
 )
 
 # ============================================================
@@ -65,92 +71,85 @@ def main(
     mode: str = typer.Option(
         "student",
         "--mode",
-        help="""
-Pipeline mode
-
-student - quick analysis (10k centroid limit, low compute)
-premium - full analysis balanced
-turbo - maximum performance (uses more CPU)
-ref - publication-grade analysis (full dataset)
-qa - quality control only (contigs assembly)
-""",
-        case_sensitive=False
+        help=(
+            "[bold]student[/bold]  quick, low compute (≤10k centroids)\n"
+            "[bold]premium[/bold]  balanced, all centroids\n"
+            "[bold]turbo[/bold]    maximum speed\n"
+            "[bold]ref[/bold]      publication-grade (EDLib, no MAFFT)\n"
+            "[bold]qa[/bold]       quality control only"
+        ),
+        case_sensitive=False,
     ),
 
     classifier: str = typer.Option(
-        "flat",
+        "naive-v2",
         "--classifier",
-        help="""
-Taxonomic classifier engine
-
-flat        simple taxonomy assigner
-naive-v2    parallel Naive Bayes classifier
-kraken-lite k-mer + LCA classifier (Kraken-style)
-pro-engine  high-resolution MetagenApp engine
-metaspecies SSI+ANI species-level classifier
-"""
+        help=(
+            "[bold]naive-v2[/bold]    Wang bootstrap k-mer [dim](recommended)[/dim]\n"
+            "[bold]kraken-lite[/bold] k-mer + LCA (SILVA 138)\n"
+            "[bold]flat[/bold]        simple assigner\n"
+            "[bold]pro-engine[/bold]  high-resolution engine\n"
+            "[bold]metaspecies[/bold] SSI+ANI species-level"
+        ),
     ),
 
     marker: str = typer.Option(
         "16S",
         "--marker",
-        help="Marker type: 16S | 18S",
-        case_sensitive=False
+        help="[bold]16S[/bold] bacteria/archaea  [bold]18S[/bold] eukaryotes",
+        case_sensitive=False,
     ),
 
     min_length: int = typer.Option(
         None,
         "--min-length",
-        help="Minimum sequence length filter"
+        help="Minimum contig length after merging [dim](default: 250)[/dim]",
     ),
 
     max_length: int = typer.Option(
         None,
         "--max-length",
-        help="Maximum sequence length filter"
+        help="Maximum contig length after merging [dim](default: 600)[/dim]",
     ),
 
     max_ambigs: int = typer.Option(
         None,
         "--max-ambigs",
-        help="Maximum allowed ambiguous bases"
+        help="Maximum ambiguous bases allowed [dim](default: 0)[/dim]",
     ),
 
     max_poly: int = typer.Option(
         None,
         "--max-poly",
-        help="Maximum homopolymer length"
+        help="Maximum homopolymer run length [dim](default: 8)[/dim]",
     ),
 
     extract_centroids: str = typer.Option(
         "full",
         "--extract-centroids",
-        help="Centroid extraction mode: test | student | full"
+        help="Centroid extraction mode: [bold]test[/bold] | [bold]student[/bold] | [bold]full[/bold]",
     ),
 
     model_type: str = typer.Option(
         "general",
         "--model-type",
-        help="""
-Reference model type for naive-v2 classifier
-
-general  general-purpose 16S (default, current v4)
-oral     oral/pharyngeal microbiome (HOMD-based)
-gut      gut microbiome (SILVA gut subset)
-skin     skin microbiome (HMP skin subset)
-env      environmental samples (SILVA full)
-"""
+        help=(
+            "[bold]silva[/bold]    SILVA 138 NR99 — 83K taxa [dim](publication)[/dim]\n"
+            "[bold]general[/bold]  1,949 taxa [dim](fast)[/dim]\n"
+            "[bold]oral[/bold]     HOMD — oral/pharyngeal\n"
+            "[bold]gut[/bold]      gut microbiome\n"
+            "[bold]skin[/bold]     skin microbiome\n"
+            "[bold]env[/bold]      environmental samples"
+        ),
     ),
 
     from_step: str = typer.Option(
         None,
         "--from-step",
-        help="Resume pipeline from a specific step"
+        help="Resume from a specific pipeline step",
     ),
 ):
-    """
-    Run MetagenApp metabarcoding pipeline
-    """
+    """Run the MetagenApp metabarcoding pipeline."""
 
     # ========================================================
     # Load profile if provided
