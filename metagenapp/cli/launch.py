@@ -25,14 +25,11 @@ BANNER_ART = """\
 ██║ ╚═╝ ██║███████╗   ██║   ██║  ██║╚██████╔╝███████╗██║ ╚████║
 ╚═╝     ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝"""
 
-BANNER_SUBTITLE = "  Pipeline Launcher — Metabarcoding 16S/18S · Mijail Campos"
-
-
 def banner():
     console.print()
     for line in BANNER_ART.splitlines():
         console.print(f"[bold cyan]{line}[/bold cyan]")
-    console.print(f"\n[dim]{BANNER_SUBTITLE}[/dim]\n")
+    console.print("\n           [dim]Pipeline Launcher — Metabarcoding 16S/18S[/dim]\n")
 
 
 def _sep():
@@ -311,7 +308,7 @@ def main():
     try:
         while True:
             banner()
-            console.print("  [bold cyan]── OPCIONES ─────────────────────────────────────────[/bold cyan]\n")
+            console.print("  [bold cyan]── ANÁLISIS ─────────────────────────────────────────[/bold cyan]\n")
             console.print("  [magenta][1][/magenta] Nuevo análisis")
             console.print("  [magenta][2][/magenta] Reanudar desde un paso específico")
             console.print("  [magenta][3][/magenta] Ejecutar con perfil [cyan](profiles.yaml)[/cyan]")
