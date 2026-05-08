@@ -16,9 +16,10 @@ dependencies = [
 ]
 
 [project.scripts]
-metagenapp     = "metagenapp.cli.main:app"
-mcrack         = "metagenapp.cli.crack:app"
-metagenapp-api = "metagenapp.api.main:main"
+metagenapp        = "metagenapp.cli.main:app"
+metagenapp-launch = "metagenapp.cli.launch:main"
+mcrack            = "metagenapp.cli.crack:app"
+metagenapp-api    = "metagenapp.api.main:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
