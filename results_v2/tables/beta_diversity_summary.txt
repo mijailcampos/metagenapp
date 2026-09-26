@@ -1,0 +1,45 @@
+Common samples: 36
+Figure saved: Figure_benchmark_beta_diversity.png
+
+== Mantel tests (Bray-Curtis) ==
+MetagenApp vs mothur          r = 0.940  p = 0.0001
+MetagenApp vs QIIME2          r = 0.942  p = 0.0001
+mothur vs QIIME2              r = 0.944  p = 0.0001
+
+== Procrustes (protest) ==
+MetagenApp vs mothur          M2 = 0.1225  p = 0.0001
+MetagenApp vs QIIME2          M2 = 0.1874  p = 0.0001
+mothur vs QIIME2              M2 = 0.0275  p = 0.0001
+
+Phyla in common for PERMANOVA: 20
+  Samples in combined PERMANOVA: 36
+
+== Combined PERMANOVA (phylum-level, Bray-Curtis) ==
+Permutation test for adonis under reduced model
+Marginal effects of terms
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = bc_combined ~ pipeline_grp + sample_grp, permutations = 9999, by = "margin")
+              Df SumOfSqs      R2      F Pr(>F)    
+pipeline_grp   2   0.2399 0.01895  7.170  1e-04 ***
+sample_grp    35  11.2447 0.88853 19.208  1e-04 ***
+Residual      70   1.1708 0.09252                  
+Total        107  12.6554 1.00000                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+== Betadisper (dispersion by pipeline) ==
+
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 9999
+
+Response: Distances
+           Df  Sum Sq   Mean Sq      F N.Perm Pr(>F)
+Groups      2 0.00623 0.0031167 0.1089   9999 0.9014
+Residuals 105 3.00491 0.0286182                     
+
+Mean distance to centroid:
+MetagenApp     mothur     QIIME2 
+    0.3013     0.2933     0.3119 

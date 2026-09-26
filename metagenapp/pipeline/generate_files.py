@@ -7,11 +7,14 @@ def generate_input_files(input_dir: Path, output_files: Path):
     Generate a mothur-like .files file from paired-end FASTQ files.
     """
 
-    r1_pattern = re.compile(r"(.*)_R1_.*\.fastq")
+    # Accept .fastq/.fq and their .gz variants (vsearch reads them directly);
+    # previously only ".fastq" was detected and compressed input yielded 0 samples
+    r1_pattern = re.compile(r"(.*)_R1_.*\.(fastq|fq)(\.gz)?$")
+    fastq_exts = (".fastq", ".fq", ".fastq.gz", ".fq.gz")
     samples = {}
 
     for fastq in input_dir.iterdir():
-        if not fastq.name.endswith(".fastq"):
+        if not fastq.name.endswith(fastq_exts):
             continue
 
         m = r1_pattern.match(fastq.name)

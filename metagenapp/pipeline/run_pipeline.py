@@ -17,6 +17,7 @@ from metagenapp.metagen_config import (
 from metagenapp.pipeline.generate_files import generate_input_files
 from metagenapp.pipeline.assemble_contigs import assemble_contigs
 from metagenapp.pipeline.filter_contigs import filter_contigs
+from metagenapp.pipeline.trim_primers import trim_primers_cutadapt
 from metagenapp.pipeline.unique_contigs import generate_unique_contigs
 from metagenapp.pipeline.alignment import align_centroids_refmode_professional
 from metagenapp.pipeline.recorte_vsearch import recortar_por_alnout
@@ -62,6 +63,8 @@ def run_pipeline(
     max_ambigs=0,
     max_poly=8,
     extract_centroids="full",
+    primer_f=None,
+    primer_r=None,
 ):
 
 
@@ -88,6 +91,7 @@ def run_pipeline(
     PIPELINE_STEPS = [
         "00_Generate_files",
         "01_Assemble_contigs",
+        "01b_Trim_primers",
         "02_Filter_contigs",
         "03_Unique_contigs",
         "04_Alignment_vsearch",
@@ -142,6 +146,9 @@ def run_pipeline(
     _merge_results = []   # (sample, pairs, merged, pct, fastq_path)
     assembled_fasta = outdir / "assembled_contigs.fasta"
     assembled_count = outdir / "assembled_contigs.count_table"
+
+    primer_trimmed_fasta = outdir / "primer_trimmed_contigs.fasta"
+    primer_trimmed_count = outdir / "primer_trimmed_contigs.count_table"
 
     filtered_fasta = outdir / "filtered_contigs.fasta"
     filtered_count = outdir / "filtered_contigs.count_table"
@@ -207,14 +214,41 @@ def run_pipeline(
             raise RuntimeError(error)
         end_step(success=True)
 
+
+    # ============================================================
+    # Step 01b — Trim primers (cutadapt)
+    # ============================================================
+    if should_run("01b_Trim_primers"):
+        start_step("01b_Trim_primers")
+        if primer_f and primer_r:
+            _, error, retained_primers = trim_primers_cutadapt(
+                fasta_path=assembled_fasta,
+                count_table_path=assembled_count,
+                output_fasta=primer_trimmed_fasta,
+                output_count=primer_trimmed_count,
+                primer_f=primer_f,
+                primer_r=primer_r,
+                threads=threads,
+            )
+            if error:
+                end_step(success=False)
+                raise RuntimeError(error)
+            print(f"   {retained_primers:,} contigs with both primers detected and trimmed")
+        else:
+            import shutil
+            shutil.copy(assembled_fasta, primer_trimmed_fasta)
+            shutil.copy(assembled_count, primer_trimmed_count)
+            print("   (no --primer-f/--primer-r given, step skipped)")
+        end_step(success=True)
+
     # ============================================================
     # Step 02 — Filter contigs
     # ============================================================
     if should_run("02_Filter_contigs"):
         start_step("02_Filter_contigs")
         _, _, retained, error = filter_contigs(
-            fasta_path=assembled_fasta,
-            count_table_path=assembled_count,
+            fasta_path=primer_trimmed_fasta,
+            count_table_path=primer_trimmed_count,
             output_fasta=filtered_fasta,
             output_count=filtered_count,
             min_length=min_length,
@@ -827,10 +861,11 @@ def run_pipeline(
             # 🔬 Diferenciar filtro según marcador
             if marker == "18S":
                 # En 18S NO remover Eukaryota ni unknown
-                taxa_to_remove = "Chloroplast-Mitochondria-Archaea"
+                # "Unclassified" = fallo total del clasificador (sin dominio confiable) -- se remueve en ambos casos
+                taxa_to_remove = "Chloroplast-Mitochondria-Archaea-Unclassified"
             else:
                 # En 16S sí remover eucariotas y unknown
-                taxa_to_remove = "Chloroplast-Mitochondria-unknown-Archaea-Eukaryota"
+                taxa_to_remove = "Chloroplast-Mitochondria-unknown-Archaea-Eukaryota-Unclassified"
 
             result = run_step21(
                 fasta_input=nonchimera_fasta,

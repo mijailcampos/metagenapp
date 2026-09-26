@@ -124,6 +124,18 @@ def main(
         help="Maximum homopolymer run length [dim](default: 8)[/dim]",
     ),
 
+    primer_f: str = typer.Option(
+        None,
+        "--primer-f",
+        help="Forward primer to trim from the 5' end (e.g. 341F) [dim](requires --primer-r)[/dim]",
+    ),
+
+    primer_r: str = typer.Option(
+        None,
+        "--primer-r",
+        help="Reverse primer; its reverse complement is trimmed from the 3' end [dim](requires --primer-f)[/dim]",
+    ),
+
     extract_centroids: str = typer.Option(
         "full",
         "--extract-centroids",
@@ -285,6 +297,13 @@ def main(
         raise typer.Exit(code=1)
 
     # ========================================================
+    # Validate primers (both or none)
+    # ========================================================
+    if bool(primer_f) != bool(primer_r):
+        typer.echo("❌ --primer-f and --primer-r must be given together")
+        raise typer.Exit(code=1)
+
+    # ========================================================
     # QA MODE
     # ========================================================
     if mode == "qa":
@@ -319,7 +338,9 @@ def main(
         max_ambigs=max_ambigs,
         max_poly=max_poly,
         extract_centroids=extract_centroids,
-        from_step=from_step
+        from_step=from_step,
+        primer_f=primer_f,
+        primer_r=primer_r,
     )
 
 
