@@ -123,7 +123,7 @@ def main(
 
     classifier: str = typer.Option(
         "flat", "--classifier",
-        help="flat | naive-v2 | kraken-lite | pro-engine"
+        help="flat | naive-v2 | wang | kraken-lite | pro-engine"
     ),
 
     marker: str = typer.Option(
@@ -232,10 +232,10 @@ def main(
         console.print(f"   Valid: {', '.join(sorted(valid_modes))}")
         raise typer.Exit(code=1)
 
-    valid_classifiers = {"flat", "naive-v2", "kraken-lite", "pro-engine"}
+    valid_classifiers = {"flat", "naive-v2", "wang", "kraken-lite", "pro-engine"}
     if classifier not in valid_classifiers:
         console.print(f"[bold red]✗[/] Invalid classifier: [bold]{classifier}[/]")
-        console.print(f"   Valid: flat | naive-v2 | kraken-lite | pro-engine")
+        console.print(f"   Valid: flat | naive-v2 | wang | kraken-lite | pro-engine")
         raise typer.Exit(code=1)
 
     from metagenapp.metagen_config import VALID_MODEL_TYPES

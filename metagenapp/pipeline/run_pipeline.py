@@ -7,8 +7,10 @@ from metagenapp.metagen_config import (
     PR2_REFERENCE,
     SILVA_REFERENCE_RAW,
     SILVA_REFERENCE_ALN,
+    SILVA_REFMODE_REFERENCE,
     NAIVE_MODEL_PATH,
     get_naive_model_path,
+    OTU_MIN_UNIQUE_SIZE,
 )
 
 # ===============================
@@ -19,9 +21,12 @@ from metagenapp.pipeline.assemble_contigs import assemble_contigs
 from metagenapp.pipeline.filter_contigs import filter_contigs
 from metagenapp.pipeline.trim_primers import trim_primers_cutadapt
 from metagenapp.pipeline.unique_contigs import generate_unique_contigs
+from metagenapp.pipeline.chimera_denovo_uniques import remove_chimeras_from_uniques
 from metagenapp.pipeline.alignment import align_centroids_refmode_professional
+from metagenapp.pipeline.alignment import vsearch_map_centroids_to_reference
 from metagenapp.pipeline.recorte_vsearch import recortar_por_alnout
 from metagenapp.pipeline.cluster import cluster_seqs
+from metagenapp.pipeline.cluster_min_size import cluster_with_min_size
 from metagenapp.pipeline.centroid_subset import extraer_subset_centroides
 from metagenapp.pipeline.align_with_mafft import align_with_mafft
 from metagenapp.pipeline.filtrar_mafft_avanzado import filtrar_mafft_por_posicion
@@ -94,6 +99,7 @@ def run_pipeline(
         "01b_Trim_primers",
         "02_Filter_contigs",
         "03_Unique_contigs",
+        "03b_Chimera_denovo",
         "04_Alignment_vsearch",
         "09_Trim_vsearch",
         "10_Clustering_97",
@@ -137,6 +143,9 @@ def run_pipeline(
     else:
         reference_raw = SILVA_REFERENCE_RAW
         reference_aln = SILVA_REFERENCE_ALN
+        # Modo ref: SILVA 138.2 NR99 completa (misma fuente que la taxonomía del fallback)
+        if mode == "ref":
+            reference_raw = SILVA_REFMODE_REFERENCE
 
     # ============================================================
     # Paths (siempre definidos)
@@ -370,6 +379,36 @@ def run_pipeline(
         end_step(success=True)
 
     # ============================================================
+    # Step 03b — De novo chimera removal on unique sequences
+    # (abundance-annotated, before OTU clustering; VSEARCH/UPARSE order)
+    # ============================================================
+    nochim_unique_fasta = outdir / "unique_contigs.nochim.fasta"
+    nochim_unique_count = outdir / "unique_contigs.nochim.count_table"
+    if mode == "ref" and classifier in ("naive-v2", "wang") and should_run("03b_Chimera_denovo"):
+        start_step("03b_Chimera_denovo")
+        try:
+            _, _, chim_stats = remove_chimeras_from_uniques(
+                unique_fasta=unique_fasta,
+                unique_count=unique_count,
+                output_fasta=nochim_unique_fasta,
+                output_count=nochim_unique_count,
+                workdir=outdir,
+                threads=threads,
+            )
+        except Exception as e:
+            end_step(success=False)
+            raise RuntimeError(f"Chimera detection failed: {e}")
+        print(
+            f"   {chim_stats['uniques_chimeric']:,} of {chim_stats['uniques_in']:,} unique sequences chimeric; "
+            f"{chim_stats['reads_chimeric']:,} of {chim_stats['reads_in']:,} reads removed "
+            f"({chim_stats['reads_out']:,} retained)"
+        )
+        end_step(success=True)
+    if mode == "ref" and classifier in ("naive-v2", "wang"):
+        unique_fasta = nochim_unique_fasta
+        unique_count = nochim_unique_count
+
+    # ============================================================
     # Step 04 — Alignment vsearch
     # ============================================================
     if should_run("04_Alignment_vsearch"):
@@ -421,13 +460,34 @@ def run_pipeline(
     if should_run("10_Clustering_97"):
         start_step("10_Clustering_97")
         try:
-            out, msg = cluster_seqs(
-                fasta_path=trimmed_fasta,
-                output_fasta=clustered_fasta,
-                output_uc=clustered_uc,
-                identity=0.97,
-                threads=threads
-            )
+            if mode == "ref" and classifier in ("naive-v2", "wang") and OTU_MIN_UNIQUE_SIZE > 1:
+                # UPARSE order: OTUs only from uniques with >= OTU_MIN_UNIQUE_SIZE reads;
+                # the rest are mapped back to the OTUs at 97 % (their reads still count).
+                out, ms = cluster_with_min_size(
+                    fasta_path=trimmed_fasta,
+                    count_table_path=unique_count,
+                    output_fasta=clustered_fasta,
+                    output_uc=clustered_uc,
+                    identity=0.97,
+                    threads=threads,
+                    min_size=OTU_MIN_UNIQUE_SIZE,
+                )
+                msg = ms if not out else ""
+                if out:
+                    print(
+                        f"   OTUs from {ms['uniques_clustered']:,} uniques with >= {ms['min_size']} reads "
+                        f"({ms['reads_clustered']:,} reads); {ms['uniques_mapped']:,} of {ms['uniques_below']:,} "
+                        f"rarer uniques mapped back at 97 % (+{ms['reads_mapped']:,} reads, "
+                        f"{ms['reads_discarded']:,} reads discarded)"
+                    )
+            else:
+                out, msg = cluster_seqs(
+                    fasta_path=trimmed_fasta,
+                    output_fasta=clustered_fasta,
+                    output_uc=clustered_uc,
+                    identity=0.97,
+                    threads=threads
+                )
             clustered_fasta = Path(clustered_fasta)
 
             if not out or not clustered_fasta.exists():
@@ -512,17 +572,26 @@ def run_pipeline(
 
             if mode == "ref":
 
-                print("   EDLib mapping centroids → reference")
-
                 aligned_mafft = outdir / "centroids_vs_reference.edlib.tsv"
 
-                aligned_path = align_centroids_refmode_professional(
-                    centroid_fasta=centroid_fasta,
-                    reference_fasta=reference_raw,
-                    out_tsv=aligned_mafft,
-                    threads=min(threads, 16),
-                    auto=True,
-                )
+                if marker == "18S":
+                    print("   EDLib mapping centroids → reference")
+                    aligned_path = align_centroids_refmode_professional(
+                        centroid_fasta=centroid_fasta,
+                        reference_fasta=reference_raw,
+                        out_tsv=aligned_mafft,
+                        threads=min(threads, 16),
+                        auto=True,
+                    )
+                else:
+                    # 16S: la referencia es SILVA completa (~400 mil secuencias); EDLib no escala
+                    print("   VSEARCH mapping centroids → reference")
+                    aligned_path = vsearch_map_centroids_to_reference(
+                        centroid_fasta=centroid_fasta,
+                        reference_fasta=reference_raw,
+                        out_tsv=aligned_mafft,
+                        threads=threads,
+                    )
 
                 aligned_mafft = Path(aligned_path)
 
@@ -662,23 +731,11 @@ def run_pipeline(
     if classifier == "kraken-lite":
         print("\n   [kraken-lite] skipping chimera detection")
 
-    elif mode == "ref" and classifier == "naive-v2":
-        # En ref mode + naive-v2 los centroides no pasan por MAFFT,
-        # pero sí necesitan chimera removal antes de clasificar.
-        if should_run("18_ChimeraDetection"):
-            start_step("18_ChimeraDetection")
-            try:
-                result = run_step18(
-                    fasta_input=centroid_fasta,
-                    count_input=nonchimera_count,
-                    outdir=outdir
-                )
-                nonchimera_fasta = Path(result["fasta"])
-                nonchimera_count = Path(result["count"]) if result["count"] else None
-                end_step(success=True)
-            except Exception as e:
-                end_step(success=False)
-                raise RuntimeError(str(e))
+    elif mode == "ref" and classifier in ("naive-v2", "wang"):
+        # Chimeras were already removed from the unique sequences in step
+        # 03b (abundance-aware, before clustering); centroids and their
+        # aggregated counts go straight to classification.
+        nonchimera_fasta = centroid_fasta
 
     elif mode == "ref":
         pass  # ref mode skips chimera (professional engine handles it)
@@ -771,6 +828,27 @@ def run_pipeline(
                         )
                     except Exception as fb_err:
                         print(f"   [fallback] WARNING: fallback failed ({fb_err}) — continuing without it")
+
+            # ----------------------------------------------------
+            # WANG (Naive Bayes de Wang et al. 2007, motor propio)
+            # ----------------------------------------------------
+            elif classifier == "wang":
+                if marker != "16S":
+                    raise ValueError("Wang classifier only has a 16S model (SILVA 138.2) for now")
+                from metagenapp.metagen_config import WANG_MODEL_16S, WANG_CONFIDENCE, WANG_MAX_RANK
+                from metagenapp_core.models.wang_engine import classify_to_taxonomy
+                print(f"🧬 Wang classifier activated (k=8, bootstrap 1/8 x 100, confidence {WANG_CONFIDENCE:.2f})")
+                print(f"   Model: {WANG_MODEL_16S}")
+                # Sin alignment fallback: el desempeño validado (cv/) es el del clasificador solo;
+                # subir a género por mejor hit anularía los niveles que no alcanzan la confianza.
+                classify_to_taxonomy(
+                    model_path=str(WANG_MODEL_16S),
+                    fasta=str(nonchimera_fasta),
+                    output=str(taxonomy_file),
+                    confidence=WANG_CONFIDENCE,
+                    threads=threads,
+                    max_rank=WANG_MAX_RANK,
+                )
 
             # ----------------------------------------------------
             # KRAKEN-LITE

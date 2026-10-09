@@ -85,7 +85,8 @@ def main(
         "naive-v2",
         "--classifier",
         help=(
-            "[bold]naive-v2[/bold]    Wang bootstrap k-mer [dim](recommended)[/dim]\n"
+            "[bold]wang[/bold]        Wang et al. (2007), k=8 + bootstrap, SILVA 138.2 [dim](recommended for 16S)[/dim]\n"
+            "[bold]naive-v2[/bold]    Wang bootstrap k-mer\n"
             "[bold]kraken-lite[/bold] k-mer + LCA (SILVA 138)\n"
             "[bold]flat[/bold]        simple assigner\n"
             "[bold]pro-engine[/bold]  high-resolution engine\n"
@@ -252,6 +253,7 @@ def main(
     valid_classifiers = {
         "flat",
         "naive-v2",
+        "wang",
         "kraken-lite",
         "pro-engine",
         "metaspecies",
@@ -260,7 +262,7 @@ def main(
     if classifier not in valid_classifiers:
 
         typer.echo(f"❌ Invalid classifier: {classifier}")
-        typer.echo("Valid options: flat | naive-v2 | kraken-lite | pro-engine | metaspecies")
+        typer.echo("Valid options: flat | naive-v2 | wang | kraken-lite | pro-engine | metaspecies")
 
         raise typer.Exit(code=1)
 

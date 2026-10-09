@@ -2,7 +2,7 @@
 
 **MetagenApp** is a reproducible 16S/18S metabarcoding pipeline that turns
 paired-end Illumina reads into taxonomically annotated OTU tables. It is built
-around a Wang-style k-mer classifier (`naive-v2`) and VSEARCH, and is designed
+around VSEARCH and a naive Bayes classifier after Wang et al. (2007) (`wang`), and is designed
 to run quickly and with modest memory on standard hardware.
 
 Developed by José Mijail Campos Compeán (Universidad Autónoma Metropolitana, Mexico).
@@ -65,8 +65,10 @@ Summary statistics and PCoA coordinates are in [`results_v2/tables/`](results_v2
 ---
 ## Features
 
+- `wang` classifier (recommended for 16S) — Wang et al. (2007) naive Bayes, 8-mers, 100 bootstraps, SILVA 138.2 NR99
+- UPARSE-style OTU formation: unique sequences with ≥2 reads form OTUs, singletons are mapped back at 97%
 - Custom classifier (`naive-v2`) — Wang-style bootstrap k-mer confidence scoring
-- SILVA NR99 models (138 on Zenodo; 138.2 used in the v2 benchmark)
+- SILVA NR99 models (138 on Zenodo; 138.2 used in the v1.1 benchmark)
 - Alignment fallback — EDLib pairwise alignment for borderline sequences (94% threshold, Yarza et al. 2014)
 - Optional primer trimming (`--primer-f` / `--primer-r`, cutadapt)
 - Accepts `.fastq`/`.fq` input, plain or gzipped
@@ -169,6 +171,23 @@ FASTQ R1 + R2
 
 ---
 
+## Classifier: wang (recommended for 16S)
+
+Implementation of the naive Bayes classifier of Wang et al. (2007)
+(`metagenapp_core/models/wang_engine.py`), used in the v1.1 benchmark.
+
+1. Words = overlapping 8-mers (no ambiguous bases), counted once per sequence
+2. Assignment = taxon with the highest summed log word probability
+3. Confidence = 100 bootstraps of len(words)/8 words drawn with replacement
+4. Each sequence gets its own random generator derived from a global seed and its
+   content, so results do not depend on file order, batch size or thread count
+5. Lineage reported down to the deepest rank with confidence ≥ 0.80, truncated at
+   genus (`WANG_MAX_RANK = 6`); the full species-level confidences are kept in
+   `*.wang_confidence.taxonomy`
+
+**Model (v1.1):** SILVA 138.2 NR99 Bacteria + Archaea, 83,759 classes (to species),
+sparse format, ~1.2 GB on disk.
+
 ## Classifier: naive-v2
 
 Wang-style bootstrap confidence scoring over a k-mer inverted index.
@@ -218,7 +237,30 @@ metagenapp/
 
 ## Reproducing the benchmark
 
-### v2 (ECCB 2026)
+### v1.1 (manuscript, ECCB 2026 Research Topic)
+
+The manuscript results (36-sample benchmark and three mock communities) were
+produced with tag [`v1.1`](https://github.com/mijailcampos/metagenapp/releases/tag/v1.1):
+
+```bash
+export METAGENAPP_REFS=/path/to/metagenapp_refs
+metagenapp -i <fastq_dir> -o <out_dir> \
+  --mode ref --marker 16S --classifier wang \
+  --primer-f CCTACGGGNGGCWGCAG --primer-r GACTACHVGGGTATCTAATCC \
+  --min-length 400 --max-length 440 --max-ambigs 0 --max-poly 8 -t 16
+```
+
+Reference files expected under `$METAGENAPP_REFS/16S_silva1382_full/`:
+
+| File | Built with |
+|------|------------|
+| `silva1382_full_derep.fasta` / `.tax` | `scripts/build_silva_trainset.py` → `scripts/build_fulllength_reference.py` |
+| `wang_silva1382_full_species.npz` | `python metagenapp_core/models/wang_engine.py train --fasta silva1382_full_all.fasta --tax SILVA_NR99_BacArc.tax --output wang_silva1382_full_species.npz` |
+
+The classifier was validated against mothur `classify.seqs` on the same 90/10
+split of SILVA 138.2 (`scripts/cv_*.py`).
+
+### v2 (ECCB 2026 poster, superseded by v1.1)
 
 MetagenApp command used in the v2 benchmark:
 

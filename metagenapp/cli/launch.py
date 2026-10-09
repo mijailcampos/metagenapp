@@ -73,7 +73,8 @@ def elegir_modo() -> str:
 
 def elegir_clasificador() -> str:
     return menu_select("CLASIFICADOR TAXONÓMICO", [
-        ("naive-v2",    "naive-v2",    "Wang bootstrap k-mer  (recomendado)"),
+        ("wang",        "wang",        "Wang et al. 2007, SILVA 138.2  (recomendado 16S)"),
+        ("naive-v2",    "naive-v2",    "Wang bootstrap k-mer"),
         ("kraken-lite", "kraken-lite", "k-mer + LCA jerárquico  (SILVA 138)"),
         ("flat",        "flat",        "Asignador simple"),
         ("pro-engine",  "pro-engine",  "Motor alta resolución"),
