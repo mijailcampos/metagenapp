@@ -399,6 +399,58 @@ def edlib_map_queries_to_reference_C(
     return str(out_tsv)
 
 
+# ==========================================================
+#  D) VSEARCH: mejor hit por centroide (escala a SILVA completa)
+# ==========================================================
+def vsearch_map_centroids_to_reference(
+    centroid_fasta: str | Path,
+    reference_fasta: str | Path,
+    out_tsv: str | Path,
+    threads: int = 4,
+    min_identity: float = 0.70,
+) -> str:
+    """
+    Mapeo de centroides contra la referencia completa (SILVA 138.2 NR99) con
+    vsearch --usearch_global. Escribe el mismo TSV que los motores EDLib
+    (query_id, ref_id, identity, edit_distance, ref_start, ref_end, query_len),
+    así que el alignment fallback lo lee sin cambios.
+    EDLib B/C no escalan a ~400 mil referencias (B es fuerza bruta y C copia el
+    índice de k-mers a cada proceso).
+    """
+    raw = Path(out_tsv).with_suffix(".vsearch.raw.tsv")
+    cmd = [
+        "vsearch",
+        "--usearch_global", str(centroid_fasta),
+        "--db", str(reference_fasta),
+        "--strand", "plus",
+        "--id", str(min_identity),
+        "--maxaccepts", "20",
+        "--maxrejects", "200",
+        "--top_hits_only",
+        "--threads", str(threads),
+        "--userfields", "query+target+id+mism+gaps+tilo+tihi+ql",
+        "--userout", str(raw),
+    ]
+    t0 = time.time()
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"VSEARCH mapping failed:\n{result.stderr}")
+
+    seen = set()
+    with open(raw) as fin, open(out_tsv, "w") as out:
+        out.write("query_id\tref_id\tidentity\tedit_distance\tref_start\tref_end\tquery_len\n")
+        for line in fin:
+            q, t, ident, mism, gaps, tlo, thi, ql = line.rstrip("\n").split("\t")
+            q = q.split(";")[0]
+            if q in seen:          # --top_hits_only puede dar empates: se queda el primero
+                continue
+            seen.add(q)
+            out.write(f"{q}\t{t}\t{float(ident) / 100:.6f}\t{int(mism) + int(gaps)}\t{tlo}\t{thi}\t{ql}\n")
+    raw.unlink()
+    print(f"✅ VSEARCH mapping: {len(seen)} centroids with hit in {(time.time() - t0) / 60:.2f} min -> {out_tsv}")
+    return str(out_tsv)
+
+
 # ----------------------------------------------------------
 # Punto de integración en pipeline (lo que llamará MetagenApp)
 # ----------------------------------------------------------

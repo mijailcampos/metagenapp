@@ -60,6 +60,23 @@ GENUS_MODELS_DIR = HIERARCHY_ROOT_16S / "genus_opt"
 SILVA_REFERENCE_RAW = REF_16S_ROOT / "silva_reference.fasta"
 SILVA_REFERENCE_ALN = REF_16S_ROOT / "silva_reference_aligned.fasta"
 
+# Modo ref (16S): SILVA 138.2 NR99 BacArc de largo completo, derreplicada, con taxonomía hasta género
+# (scripts/build_fulllength_reference.py). La usan 04_Alignment_vsearch, el mapeo de centroides y el
+# alignment fallback, así que sus IDs siempre coinciden.
+SILVA_REFMODE_ROOT = METAGEN_REFS / "16S_silva1382_full"
+SILVA_REFMODE_REFERENCE = SILVA_REFMODE_ROOT / "silva1382_full_derep.fasta"
+SILVA_REFMODE_TAX = SILVA_REFMODE_ROOT / "silva1382_full_derep.tax"
+
+# Clasificador Wang (metagenapp_core/models/wang_engine.py): k=8, bootstrap 1/8 x 100.
+# Entrenado con SILVA 138.2 NR99 BacArc completa (silva1382_full_all), clases hasta especie
+# (como la referencia de mothur del benchmark); formato disperso, ~1.5 GB de RAM.
+# Validado contra mothur classify.seqs en el mismo split 90/10 (cv/wangsp, 7 oct 2026).
+# La línea reportada se corta en género (WANG_MAX_RANK = 6): V3-V4 no resuelve especie;
+# la confianza de especie queda en *.wang_confidence.taxonomy.
+WANG_MODEL_16S = SILVA_REFMODE_ROOT / "wang_silva1382_full_species.npz"
+WANG_CONFIDENCE = 0.80
+WANG_MAX_RANK = 6
+
 # =====================================================
 # 18S
 # =====================================================
@@ -88,7 +105,7 @@ _MODELS_18S = REF_18S_ROOT / "models"
 NAIVE_MODELS = {
     "16S": {
         "general": REF_16S_ROOT / "naive_model_v4.pkl",              # disponible (1,949 taxa)
-        "silva":   _MODELS_16S  / "naive_model_silva_v1.pkl",        # SILVA 138 NR99 full-scale — entrenar
+        "silva":   REF_16S_ROOT / "naive_model_silva_full_v2.pkl",     # SILVA 138.2 NR99 full-scale (retrained 5 ago 2026)
         "oral":    _MODELS_16S  / "naive_model_oral_v1.pkl",         # HOMD — disponible
         "gut":     _MODELS_16S  / "naive_model_gut_v1.pkl",          # SILVA gut — pendiente
         "skin":    _MODELS_16S  / "naive_model_skin_v1.pkl",         # HMP skin — pendiente
@@ -193,4 +210,8 @@ FINAL_OTU_TAXONOMY = OUTPUT_DIR / "final.otu.taxonomy"
 
 DEFAULT_VSEARCH_THREADS = 16
 DEFAULT_CLUSTER_IDENTITY = 0.97
+# Modo ref (naive-v2/wang): solo las secuencias únicas con >= N lecturas en total forman OTUs;
+# las más raras (singletons con N = 2) se mapean después a esos OTUs al 97 % (orden UPARSE,
+# Edgar 2013). 1 = sin filtro (comportamiento de la versión del paper).
+OTU_MIN_UNIQUE_SIZE = 2
 DEFAULT_ALIGN_IDENTITY = 0.97

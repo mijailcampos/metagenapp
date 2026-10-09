@@ -6,7 +6,7 @@ import time
 from multiprocessing import Pool
 from Bio import SeqIO
 import pandas as pd
-from metagenapp.metagen_config import NAIVE_MODEL_PATH, SILVA_TRAINSET_TAX
+from metagenapp.metagen_config import NAIVE_MODEL_PATH, SILVA_TRAINSET_TAX, SILVA_REFMODE_TAX
 
 
 # ============================================================
@@ -338,7 +338,7 @@ def apply_alignment_fallback(
     Returns stats dict with keys: n_total, n_below_genus, n_upgraded.
     """
     if silva_tax_file is None:
-        silva_tax_file = str(SILVA_TRAINSET_TAX)
+        silva_tax_file = str(SILVA_REFMODE_TAX)
 
     if not os.path.exists(silva_tax_file):
         print(f"   [fallback] WARNING: SILVA taxonomy not found at {silva_tax_file} — skipping fallback")
@@ -348,11 +348,12 @@ def apply_alignment_fallback(
         print(f"   [fallback] WARNING: edlib TSV not found — skipping fallback")
         return {"n_total": 0, "n_below_genus": 0, "n_upgraded": 0}
 
-    # Load SILVA taxonomy indexed by bare accession (no version, no region coords).
-    # SILVA keys look like "AY727530_1_1478"; edlib ref_ids look like "AY727530.1".
-    # We strip to the raw accession for matching.
+    # Taxonomía de la MISMA referencia contra la que se mapean los centroides
+    # (SILVA_REFMODE_REFERENCE), indexada por ID completo (p. ej. "AY727530_1_1478").
+    # Antes se cortaba a la accesión porque la referencia de mapeo era otra base
+    # (silva.bacteria de mothur) y casi la mitad de sus hits no tenían taxonomía aquí.
     print("   [fallback] Loading SILVA taxonomy index...")
-    silva_tax = {}   # accession -> taxonomy string up to genus
+    silva_tax = {}   # ref_id -> taxonomy string up to genus
     with open(silva_tax_file) as fh:
         for line in fh:
             line = line.strip()
@@ -361,13 +362,12 @@ def apply_alignment_fallback(
             parts = line.split("\t")
             if len(parts) < 2:
                 continue
-            raw_key = parts[0]                          # e.g. AY727530_1_1478
-            accession = raw_key.split("_")[0]           # e.g. AY727530
+            ref_key = parts[0]                          # e.g. AY727530_1_1478
             tax = parts[1].rstrip(";")
             levels = [p.strip() for p in tax.split(";") if p.strip()]
-            if len(levels) >= genus_level and accession not in silva_tax:
-                silva_tax[accession] = ";".join(levels[:genus_level])
-    print(f"   [fallback] {len(silva_tax):,} accessions indexed")
+            if len(levels) >= genus_level:
+                silva_tax[ref_key] = ";".join(levels[:genus_level])
+    print(f"   [fallback] {len(silva_tax):,} references with genus indexed")
 
     # Load edlib TSV: query -> (ref_id, identity)  — keep best hit per query
     print("   [fallback] Loading edlib alignment hits...")
@@ -407,9 +407,7 @@ def apply_alignment_fallback(
             hit = best_hit.get(seq_id)
             if hit:
                 ref_id, identity = hit
-                # edlib ref_id is like "AY727530.1" — strip version suffix to get accession
-                accession = ref_id.split(".")[0]
-                fallback_tax = silva_tax.get(accession)
+                fallback_tax = silva_tax.get(ref_id)
                 if fallback_tax:
                     entry[1] = fallback_tax
                     n_upgraded += 1

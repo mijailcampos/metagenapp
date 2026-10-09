@@ -33,7 +33,14 @@ OUT_FASTA           = OUT_DIR / "SILVA_NR99_BacArc.fasta"
 OUT_TAX             = OUT_DIR / "SILVA_NR99_BacArc.tax"
 
 # Dominios a conservar
-KEEP_DOMAINS = {"Bacteria", "Archaea"}
+KEEP_DOMAINS = {"Bacteria", "Archaea", "Eukaryota"}
+
+# Longitud minima por dominio, igual que QIIME2 rescript filter-seqs-length-by-taxon
+MIN_LEN_BY_DOMAIN = {"Archaea": 900, "Bacteria": 1200, "Eukaryota": 1400}
+
+# Limpieza igual que QIIME2 rescript cull-seqs
+MAX_DEGENERATE = 5
+MAX_HOMOPOLYMER = 8
 
 # Niveles taxonómicos (igual que trainset9: 7 niveles + ; al final)
 TAX_LEVELS = 7
@@ -56,6 +63,19 @@ def parse_silva_header(header: str):
     # AB000393.1.1510 → AB000393_1_1510  (evita puntos en IDs)
     seq_id_clean = seq_id.replace(".", "_")
     return seq_id_clean, tax_raw
+
+
+def _max_homopolymer(seq: str) -> int:
+    """Longitud de la corrida (run) de bases identicas mas larga."""
+    max_run = 1
+    run = 1
+    for i in range(1, len(seq)):
+        if seq[i] == seq[i - 1]:
+            run += 1
+            max_run = max(max_run, run)
+        else:
+            run = 1
+    return max_run if seq else 0
 
 
 def normalize_taxonomy(tax_raw: str) -> str:
@@ -105,24 +125,43 @@ def main():
     print(f"  Dominios: {KEEP_DOMAINS}")
     print("=" * 60)
 
-    total_seqs     = 0
-    kept_seqs      = 0
-    skipped_domain = 0
-    skipped_short  = 0
-    skipped_header = 0
+    total_seqs        = 0
+    kept_seqs         = 0
+    skipped_domain    = 0
+    skipped_short     = 0
+    skipped_header    = 0
+    skipped_length    = 0
+    skipped_degenerate = 0
+    skipped_homopolymer = 0
 
     current_id  = None
     current_tax = None
     seq_lines   = []
 
     def flush(fasta_out, tax_out):
-        nonlocal kept_seqs, skipped_short
+        nonlocal kept_seqs, skipped_short, skipped_length, skipped_degenerate, skipped_homopolymer
         if not (current_id and current_tax and seq_lines):
             return
-        seq = "".join(seq_lines).replace("-", "").replace(".", "").upper()
+        seq = "".join(seq_lines).replace("-", "").replace(".", "").upper().replace("U", "T")  # SILVA viene en RNA
         if len(seq) < 50:
             skipped_short += 1
             return
+
+        domain = current_tax.split(";")[0]
+        min_len = MIN_LEN_BY_DOMAIN.get(domain, 50)
+        if len(seq) < min_len:
+            skipped_length += 1
+            return
+
+        n_degenerate = sum(1 for c in seq if c not in "ACGT")
+        if n_degenerate > MAX_DEGENERATE:
+            skipped_degenerate += 1
+            return
+
+        if _max_homopolymer(seq) > MAX_HOMOPOLYMER:
+            skipped_homopolymer += 1
+            return
+
         fasta_out.write(f">{current_id}\n{seq}\n")
         tax_out.write(f"{current_id}\t{current_tax}\n")
         kept_seqs += 1
@@ -171,10 +210,13 @@ def main():
     # ── Resumen ────────────────────────────────────────────────────────────────
     print("=" * 60)
     print(f"  Total leídas        : {total_seqs:,}")
-    print(f"  Bacteria + Archaea  : {kept_seqs:,}")
-    print(f"  Otros dominios      : {skipped_domain:,}")
-    print(f"  Secuencias <50 bp   : {skipped_short:,}")
-    print(f"  Headers inválidos   : {skipped_header:,}")
+    print(f"  Retenidas (Bac+Arc+Euk) : {kept_seqs:,}")
+    print(f"  Otros dominios          : {skipped_domain:,}")
+    print(f"  Secuencias <50 bp       : {skipped_short:,}")
+    print(f"  Bajo minimo por dominio : {skipped_length:,}")
+    print(f"  Degenerados >{MAX_DEGENERATE}         : {skipped_degenerate:,}")
+    print(f"  Homopolimero >{MAX_HOMOPOLYMER}       : {skipped_homopolymer:,}")
+    print(f"  Headers invalidos       : {skipped_header:,}")
     print("=" * 60)
     print(f"  ✓ FASTA → {out_fasta}")
     print(f"  ✓ TAX   → {out_tax}")

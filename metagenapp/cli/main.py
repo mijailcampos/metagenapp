@@ -85,6 +85,7 @@ Taxonomic classifier engine
 
 flat        simple taxonomy assigner
 naive-v2    parallel Naive Bayes classifier
+wang        Wang et al. (2007) Naive Bayes, k=8 + bootstrap (16S, SILVA 138.2)
 kraken-lite k-mer + LCA classifier (Kraken-style)
 pro-engine  high-resolution MetagenApp engine
 metaspecies SSI+ANI species-level classifier
@@ -120,6 +121,18 @@ metaspecies SSI+ANI species-level classifier
         None,
         "--max-poly",
         help="Maximum homopolymer length"
+    ),
+
+    primer_f: str = typer.Option(
+        None,
+        "--primer-f",
+        help="Forward primer sequence to trim from the 5' end (e.g. 341F). Requires --primer-r."
+    ),
+
+    primer_r: str = typer.Option(
+        None,
+        "--primer-r",
+        help="Reverse primer sequence to trim (its reverse complement is removed from the 3' end). Requires --primer-f."
     ),
 
     extract_centroids: str = typer.Option(
@@ -241,6 +254,7 @@ env      environmental samples (SILVA full)
     valid_classifiers = {
         "flat",
         "naive-v2",
+        "wang",
         "kraken-lite",
         "pro-engine",
         "metaspecies",
@@ -249,7 +263,7 @@ env      environmental samples (SILVA full)
     if classifier not in valid_classifiers:
 
         typer.echo(f"❌ Invalid classifier: {classifier}")
-        typer.echo("Valid options: flat | naive-v2 | kraken-lite | pro-engine | metaspecies")
+        typer.echo("Valid options: flat | naive-v2 | wang | kraken-lite | pro-engine | metaspecies")
 
         raise typer.Exit(code=1)
 
@@ -320,7 +334,9 @@ env      environmental samples (SILVA full)
         max_ambigs=max_ambigs,
         max_poly=max_poly,
         extract_centroids=extract_centroids,
-        from_step=from_step
+        from_step=from_step,
+        primer_f=primer_f,
+        primer_r=primer_r,
     )
 
 
