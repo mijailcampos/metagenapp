@@ -144,12 +144,14 @@ def _request(method: str, url: str, token: str, data=None, headers=None) -> dict
         raise RuntimeError(f"HTTP {e.code} {e.reason}: {body}") from e
 
 
-def _sha256(path: Path) -> str:
-    h = hashlib.sha256()
+def _checksums(path: Path) -> tuple[str, str]:
+    """Return (sha256, md5); Zenodo reports md5 for uploaded files."""
+    sha, md5 = hashlib.sha256(), hashlib.md5()
     with open(path, "rb") as f:
         while chunk := f.read(1 << 20):
-            h.update(chunk)
-    return h.hexdigest()
+            sha.update(chunk)
+            md5.update(chunk)
+    return sha.hexdigest(), md5.hexdigest()
 
 
 def _upload_file(path: Path, bucket_url: str, token: str):
@@ -157,6 +159,9 @@ def _upload_file(path: Path, bucket_url: str, token: str):
     url = f"{bucket_url}/{path.name}"
     cmd = [
         "curl", "--progress-bar", "--fail-with-body",
+        # IPv4 + HTTP/1.1: long uploads over IPv6 were reset by peer (curl exit 56)
+        "-4", "--http1.1",
+        "--retry", "5", "--retry-all-errors", "--retry-delay", "15",
         "-X", "PUT",
         "-H", f"Authorization: Bearer {token}",
         "-H", "Content-Type: application/octet-stream",
@@ -197,9 +202,9 @@ def main():
 
     # Checksums go into the description and into SHA256SUMS.txt
     print("\nComputing SHA-256 checksums...")
-    sums = {}
+    sums, md5s = {}, {}
     for f in files:
-        sums[f.name] = _sha256(f)
+        sums[f.name], md5s[f.name] = _checksums(f)
         print(f"  {sums[f.name]}  {f.name}")
 
     tmpdir = Path(tempfile.mkdtemp(prefix="metagenapp_zenodo_"))
@@ -234,9 +239,21 @@ def main():
     print(f"  Draft URL: {deposit_url}")
 
     # 2. Upload files
+    # Files already complete in the draft (same size and md5) are skipped, so --resume
+    # only re-sends what is missing or broken
+    existing = {
+        f["filename"]: f
+        for f in _request("GET", f"{ZENODO_API}/deposit/depositions/{dep_id}/files", token)
+    }
+    md5s[sums_file.name] = _checksums(sums_file)[1]
+
     print("\n[2/4] Uploading files...")
     for path in upload_paths:
         print(f"\n  {path.name}  ({path.stat().st_size/1e9:.2f} GB)")
+        done = existing.get(path.name)
+        if done and done.get("filesize") == path.stat().st_size and done.get("checksum", "").removeprefix("md5:") == md5s[path.name]:
+            print(f"  Already in the draft (size and md5 match), skipping")
+            continue
         _upload_file(path, bucket_url, token)
         print(f"  Done: {path.name}")
 
