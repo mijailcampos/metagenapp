@@ -1,10 +1,19 @@
 cff-version: 1.2.0
 title: MetagenApp
-message: "If you use this software, please cite the associated manuscript."
+message: "If you use this software, please cite it using the metadata from this file."
 type: software
 authors:
   - family-names: Campos Compeán
     given-names: José Mijail
 repository-code: https://github.com/mijailcampos/metagenapp
-version: 1.0
-date-released: 2026-05-07
+license: MIT
+version: "1.1"
+date-released: 2026-10-12
+doi: 10.5281/zenodo.23325861
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23325861
+    description: MetagenApp v1.1 (version used in the ECCB 2026 manuscript)
+  - type: doi
+    value: 10.5281/zenodo.23325860
+    description: Concept DOI (all versions, resolves to the latest)

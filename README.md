@@ -1,5 +1,7 @@
 # MetagenApp
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23325860.svg)](https://doi.org/10.5281/zenodo.23325860)
+
 **MetagenApp** is a reproducible 16S/18S metabarcoding pipeline that turns
 paired-end Illumina reads into taxonomically annotated OTU tables. It is built
 around VSEARCH and a naive Bayes classifier after Wang et al. (2007) (`wang`), and is designed
@@ -291,6 +293,17 @@ where all three pipelines share the same primer trimming and reference.
 ---
 
 ## Citation
+
+If you use MetagenApp, please cite the software release you used. The version
+used in the ECCB 2026 manuscript is v1.1:
+
+> Campos Compeán, J.M. (2026). *MetagenApp v1.1* (v1.1). Zenodo.
+> https://doi.org/10.5281/zenodo.23325861
+
+The badge at the top ([10.5281/zenodo.23325860](https://doi.org/10.5281/zenodo.23325860))
+is the concept DOI: it covers all versions and always resolves to the latest one.
+
+Poster:
 
 > Campos Compeán, J.M. (2026). Impact of bioinformatic pipeline selection on
 > microbial community inference: a comparative analysis across pipelines
