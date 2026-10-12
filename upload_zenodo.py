@@ -1,18 +1,24 @@
 """
-Upload MetagenApp reference models to Zenodo.
+Upload MetagenApp reference files to Zenodo.
 
 Usage:
-    python upload_zenodo.py
+    python upload_zenodo.py                 # v1.1 reference files (default)
+    python upload_zenodo.py --set v1.0      # legacy v1.0 model
+    python upload_zenodo.py --resume DEP_ID # continue an existing draft
 
-You will be prompted for your Zenodo API token.
-The token is never saved to disk.
+Files are read from $METAGENAPP_REFS (default: /data/databases/metagenapp_refs).
+You will be prompted for your Zenodo API token (scope deposit:write).
+The token is never saved to disk. The deposit is left as a draft: review it
+on the Zenodo website and publish it there.
 """
 
 import getpass
 import hashlib
 import json
+import os
 import subprocess
 import sys
+import tempfile
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -21,58 +27,98 @@ from pathlib import Path
 # Files to upload
 # ---------------------------------------------------------------------------
 
-REFS_ROOT = Path("/data/databases/metagenapp_refs")
+REFS_ROOT = Path(os.getenv("METAGENAPP_REFS", "/data/databases/metagenapp_refs"))
 
-FILES = [
-    REFS_ROOT / "16S/models/naive_model_silva_v1.pkl",
-    REFS_ROOT / "16S/silva_reference.fasta",
-]
+SOFTWARE_DOI_V11 = "10.5281/zenodo.23325861"
 
-# ---------------------------------------------------------------------------
-# Zenodo metadata
-# ---------------------------------------------------------------------------
-
-METADATA = {
-    "metadata": {
-        "title": "MetagenApp SILVA v1 — 16S classifier model and reference (v1.0)",
-        "upload_type": "dataset",
-        "description": (
-            "Reference models for MetagenApp v1.0, a fast 16S/18S metabarcoding pipeline. "
-            "Includes:<br>"
-            "<ul>"
-            "<li><b>naive_model_silva_v1.pkl</b> — naive-v2 classifier trained on SILVA 138 NR99 "
-            "(83,000 taxa, Wang-style bootstrap k-mer confidence, threshold 0.60). "
-            "Achieves 91.1% genus resolution on pharyngeal microbiome benchmarks.</li>"
-            "<li><b>silva_reference.fasta</b> — SILVA 138 NR99 reference sequences used for "
-            "EDLib pairwise alignment fallback (ref mode).</li>"
-            "</ul>"
-            "See the MetagenApp repository for installation and usage instructions."
-        ),
-        "creators": [
-            {
-                "name": "Campos Compeán, José Mijail",
-                "affiliation": "",
-            }
+SETS = {
+    # v1.1: files used by `--mode ref --marker 16S --classifier wang`
+    # (metagen_config.SILVA_REFMODE_* and WANG_MODEL_16S)
+    "v1.1": {
+        "files": [
+            "16S_silva1382_full/wang_silva1382_full_species.npz",
+            "16S_silva1382_full/silva1382_full_derep.fasta",
+            "16S_silva1382_full/silva1382_full_derep.tax",
         ],
-        "keywords": [
-            "16S rRNA",
-            "metagenomics",
-            "metabarcoding",
-            "taxonomic classification",
-            "SILVA",
-            "microbiome",
-            "bioinformatics",
+        "metadata": {
+            "title": "MetagenApp v1.1 — 16S reference files (SILVA 138.2 NR99, Wang classifier)",
+            "upload_type": "dataset",
+            "description": (
+                "Reference files for MetagenApp v1.1 "
+                f"(software: https://doi.org/{SOFTWARE_DOI_V11}), the version used in the "
+                "MetagenApp benchmark manuscript (ECCB 2026 Research Topic, Frontiers). "
+                "They are the files read by <code>--mode ref --marker 16S --classifier wang</code>."
+                "<ul>"
+                "<li><b>wang_silva1382_full_species.npz</b> — Wang naive Bayes classifier "
+                "(k = 8, 100 bootstraps of 1/8 of the k-mers; sparse format) trained on "
+                "SILVA 138.2 NR99 Bacteria/Archaea (451,555 sequences) with classes down to "
+                "species; MetagenApp reports the lineage to genus at confidence 0.80.</li>"
+                "<li><b>silva1382_full_derep.fasta</b> / <b>silva1382_full_derep.tax</b> — "
+                "full-length SILVA 138.2 NR99 Bacteria/Archaea, dereplicated "
+                "(410,693 unique sequences, 5,128 genera; conflicting taxonomies resolved by "
+                "≥90% consensus or LCA), used for reference mapping in ref mode.</li>"
+                "</ul>"
+                "<p>SHA-256 checksums:</p>{checksums}"
+                "<p>Place the files in <code>$METAGENAPP_REFS/16S_silva1382_full/</code>, "
+                "or run <code>python download_model.py</code> from the repository. "
+                "Build scripts and usage: https://github.com/mijailcampos/metagenapp</p>"
+                "<p>Derived from the SILVA SSU Ref NR99 138.2 database (CC BY 4.0). "
+                "Please also cite: Quast C. et al. (2013) The SILVA ribosomal RNA gene "
+                "database project: improved data processing and web-based tools. "
+                "Nucleic Acids Research 41(D1):D590–D596. "
+                "https://doi.org/10.1093/nar/gks1219</p>"
+            ),
+            "creators": [{"name": "Campos Compeán, José Mijail", "affiliation": ""}],
+            "keywords": [
+                "16S rRNA", "metabarcoding", "taxonomic classification", "SILVA",
+                "naive Bayes classifier", "microbiome", "bioinformatics",
+            ],
+            "license": "cc-by-4.0",
+            "version": "1.1",
+            "related_identifiers": [
+                {"identifier": SOFTWARE_DOI_V11, "relation": "isSupplementTo", "scheme": "doi"},
+                {"identifier": "10.1093/nar/gks1219", "relation": "isDerivedFrom", "scheme": "doi"},
+            ],
+        },
+    },
+    # v1.0: legacy naive-v2 model (published as 10.5281/zenodo.20076968)
+    "v1.0": {
+        "files": [
+            "16S/models/naive_model_silva_v1.pkl",
+            "16S/silva_reference.fasta",
         ],
-        "license": "cc-by-4.0",
-        "version": "1.0",
-        "related_identifiers": [
-            {
-                "identifier": "https://github.com/mijailcampos/metagenapp",
-                "relation": "isSupplementTo",
-                "scheme": "url",
-            }
-        ],
-    }
+        "metadata": {
+            "title": "MetagenApp SILVA v1 — 16S classifier model and reference (v1.0)",
+            "upload_type": "dataset",
+            "description": (
+                "Reference models for MetagenApp v1.0, a fast 16S/18S metabarcoding pipeline. "
+                "Includes:<br>"
+                "<ul>"
+                "<li><b>naive_model_silva_v1.pkl</b> — naive-v2 classifier trained on SILVA 138 NR99 "
+                "(83,000 taxa, Wang-style bootstrap k-mer confidence, threshold 0.60). "
+                "Achieves 91.1% genus resolution on pharyngeal microbiome benchmarks.</li>"
+                "<li><b>silva_reference.fasta</b> — SILVA 138 NR99 reference sequences used for "
+                "EDLib pairwise alignment fallback (ref mode).</li>"
+                "</ul>"
+                "<p>SHA-256 checksums:</p>{checksums}"
+                "See the MetagenApp repository for installation and usage instructions."
+            ),
+            "creators": [{"name": "Campos Compeán, José Mijail", "affiliation": ""}],
+            "keywords": [
+                "16S rRNA", "metagenomics", "metabarcoding", "taxonomic classification",
+                "SILVA", "microbiome", "bioinformatics",
+            ],
+            "license": "cc-by-4.0",
+            "version": "1.0",
+            "related_identifiers": [
+                {
+                    "identifier": "https://github.com/mijailcampos/metagenapp",
+                    "relation": "isSupplementTo",
+                    "scheme": "url",
+                }
+            ],
+        },
+    },
 }
 
 ZENODO_API = "https://zenodo.org/api"
@@ -130,20 +176,42 @@ def _upload_file(path: Path, bucket_url: str, token: str):
 def main():
     import argparse
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--set", dest="file_set", choices=list(SETS), default="v1.1",
+                        help="Which reference set to upload (default: v1.1)")
     parser.add_argument("--resume", metavar="DEP_ID", type=int,
                         help="Resume an existing draft deposition instead of creating a new one")
     args = parser.parse_args()
 
-    print("MetagenApp — Zenodo uploader")
+    file_set = SETS[args.file_set]
+    files = [REFS_ROOT / f for f in file_set["files"]]
+
+    print(f"MetagenApp — Zenodo uploader (set {args.file_set})")
     print("=" * 50)
 
     # Validate files exist
-    for f in FILES:
+    for f in files:
         if not f.exists():
             print(f"ERROR: File not found: {f}")
             sys.exit(1)
-        size_gb = f.stat().st_size / 1e9
-        print(f"  {f.name}  ({size_gb:.2f} GB)")
+        print(f"  {f.name}  ({f.stat().st_size / 1e9:.2f} GB)")
+
+    # Checksums go into the description and into SHA256SUMS.txt
+    print("\nComputing SHA-256 checksums...")
+    sums = {}
+    for f in files:
+        sums[f.name] = _sha256(f)
+        print(f"  {sums[f.name]}  {f.name}")
+
+    tmpdir = Path(tempfile.mkdtemp(prefix="metagenapp_zenodo_"))
+    sums_file = tmpdir / "SHA256SUMS.txt"
+    sums_file.write_text("".join(f"{h}  {name}\n" for name, h in sums.items()))
+    upload_paths = files + [sums_file]
+
+    metadata = json.loads(json.dumps(file_set["metadata"]))
+    checksums_html = "<ul>" + "".join(
+        f"<li><code>{name}</code>: <code>{h}</code></li>" for name, h in sums.items()
+    ) + "</ul>"
+    metadata["description"] = metadata["description"].replace("{checksums}", checksums_html)
 
     print()
     token = getpass.getpass("Zenodo API token: ").strip()
@@ -167,14 +235,14 @@ def main():
 
     # 2. Upload files
     print("\n[2/4] Uploading files...")
-    for path in FILES:
+    for path in upload_paths:
         print(f"\n  {path.name}  ({path.stat().st_size/1e9:.2f} GB)")
         _upload_file(path, bucket_url, token)
         print(f"  Done: {path.name}")
 
     # 3. Add metadata
     print("\n[3/4] Setting metadata...")
-    _request("PUT", f"{ZENODO_API}/deposit/depositions/{dep_id}", token, data=METADATA)
+    _request("PUT", f"{ZENODO_API}/deposit/depositions/{dep_id}", token, data={"metadata": metadata})
     print("  Metadata saved.")
 
     # 4. Done — DO NOT auto-publish, let the user review first
