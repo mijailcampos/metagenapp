@@ -138,7 +138,8 @@ def _request(method: str, url: str, token: str, data=None, headers=None) -> dict
 
     try:
         with urllib.request.urlopen(req) as resp:
-            return json.loads(resp.read())
+            raw = resp.read()
+            return json.loads(raw) if raw else {}  # DELETE returns 204 with no body
     except urllib.error.HTTPError as e:
         body = e.read().decode()
         raise RuntimeError(f"HTTP {e.code} {e.reason}: {body}") from e
@@ -154,24 +155,31 @@ def _checksums(path: Path) -> tuple[str, str]:
     return sha.hexdigest(), md5.hexdigest()
 
 
-def _upload_file(path: Path, bucket_url: str, token: str):
-    """Upload using curl — handles multi-GB files reliably."""
-    url = f"{bucket_url}/{path.name}"
+def _upload_file(path: Path, files_url: str, token: str):
+    """Upload one file through the InvenioRDM draft files API (init, content, commit).
+
+    The legacy bucket PUT (/api/files/<bucket>/<name>) returned 502 from Zenodo's
+    nginx for the 1.2 GB model; the RDM API is the one the Zenodo web uploader uses.
+    """
+    key = path.name
+    _request("POST", files_url, token, data=[{"key": key}])
     cmd = [
         "curl", "--progress-bar", "--fail-with-body",
         # IPv4 + HTTP/1.1: long uploads over IPv6 were reset by peer (curl exit 56)
         "-4", "--http1.1",
         "--retry", "5", "--retry-all-errors", "--retry-delay", "15",
         "-X", "PUT",
-        "-H", f"Authorization: Bearer {token}",
+        # Token read from stdin so it does not show up in `ps`
+        "-H", "@-",
         "-H", "Content-Type: application/octet-stream",
         "--upload-file", str(path),
-        url,
+        f"{files_url}/{key}/content",
     ]
-    result = subprocess.run(cmd, capture_output=False)
+    result = subprocess.run(cmd, input=f"Authorization: Bearer {token}\n", text=True)
     print()
     if result.returncode != 0:
         raise RuntimeError(f"curl upload failed (exit {result.returncode})")
+    _request("POST", f"{files_url}/{key}/commit", token)
 
 
 # ---------------------------------------------------------------------------
@@ -233,7 +241,6 @@ def main():
         dep = _request("POST", f"{ZENODO_API}/deposit/depositions", token, data={})
 
     dep_id = dep["id"]
-    bucket_url = dep["links"]["bucket"]
     deposit_url = dep["links"]["html"]
     print(f"  Deposition ID: {dep_id}")
     print(f"  Draft URL: {deposit_url}")
@@ -241,9 +248,10 @@ def main():
     # 2. Upload files
     # Files already complete in the draft (same size and md5) are skipped, so --resume
     # only re-sends what is missing or broken
+    files_url = f"{ZENODO_API}/records/{dep_id}/draft/files"
     existing = {
-        f["filename"]: f
-        for f in _request("GET", f"{ZENODO_API}/deposit/depositions/{dep_id}/files", token)
+        f["key"]: f
+        for f in _request("GET", files_url, token).get("entries", [])
     }
     md5s[sums_file.name] = _checksums(sums_file)[1]
 
@@ -251,10 +259,15 @@ def main():
     for path in upload_paths:
         print(f"\n  {path.name}  ({path.stat().st_size/1e9:.2f} GB)")
         done = existing.get(path.name)
-        if done and done.get("filesize") == path.stat().st_size and done.get("checksum", "").removeprefix("md5:") == md5s[path.name]:
+        if (done and done.get("status") == "completed"
+                and done.get("size") == path.stat().st_size
+                and (done.get("checksum") or "").removeprefix("md5:") == md5s[path.name]):
             print(f"  Already in the draft (size and md5 match), skipping")
             continue
-        _upload_file(path, bucket_url, token)
+        if done:
+            # Pending or mismatched entry from an interrupted run: remove it first
+            _request("DELETE", f"{files_url}/{path.name}", token)
+        _upload_file(path, files_url, token)
         print(f"  Done: {path.name}")
 
     # 3. Add metadata
