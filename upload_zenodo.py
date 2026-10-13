@@ -38,7 +38,9 @@ SETS = {
     "v1.1": {
         "files": [
             "16S_silva1382_full/wang_silva1382_full_species.npz",
-            "16S_silva1382_full/silva1382_full_derep.fasta",
+            # gzip -n -9: the plain FASTA (590 MB) never got through a single PUT,
+            # Zenodo kept answering 502 midway
+            "16S_silva1382_full/silva1382_full_derep.fasta.gz",
             "16S_silva1382_full/silva1382_full_derep.tax",
         ],
         "metadata": {
@@ -54,13 +56,14 @@ SETS = {
                 "(k = 8, 100 bootstraps of 1/8 of the k-mers; sparse format) trained on "
                 "SILVA 138.2 NR99 Bacteria/Archaea (451,555 sequences) with classes down to "
                 "species; MetagenApp reports the lineage to genus at confidence 0.80.</li>"
-                "<li><b>silva1382_full_derep.fasta</b> / <b>silva1382_full_derep.tax</b> — "
+                "<li><b>silva1382_full_derep.fasta.gz</b> / <b>silva1382_full_derep.tax</b> — "
                 "full-length SILVA 138.2 NR99 Bacteria/Archaea, dereplicated "
                 "(410,693 unique sequences, 5,128 genera; conflicting taxonomies resolved by "
                 "≥90% consensus or LCA), used for reference mapping in ref mode.</li>"
                 "</ul>"
                 "<p>SHA-256 checksums:</p>{checksums}"
-                "<p>Place the files in <code>$METAGENAPP_REFS/16S_silva1382_full/</code>, "
+                "<p>Place the files in <code>$METAGENAPP_REFS/16S_silva1382_full/</code> "
+                "(decompress the FASTA with <code>gunzip</code>), "
                 "or run <code>python download_model.py</code> from the repository. "
                 "Build scripts and usage: https://github.com/mijailcampos/metagenapp</p>"
                 "<p>Derived from the SILVA SSU Ref NR99 138.2 database (CC BY 4.0). "
