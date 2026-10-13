@@ -70,7 +70,7 @@ Summary statistics and PCoA coordinates are in [`results_v2/tables/`](results_v2
 - `wang` classifier (recommended for 16S) — Wang et al. (2007) naive Bayes, 8-mers, 100 bootstraps, SILVA 138.2 NR99
 - UPARSE-style OTU formation: unique sequences with ≥2 reads form OTUs, singletons are mapped back at 97%
 - Custom classifier (`naive-v2`) — Wang-style bootstrap k-mer confidence scoring
-- SILVA NR99 models (138 on Zenodo; 138.2 used in the v1.1 benchmark)
+- SILVA 138.2 NR99 reference files on Zenodo ([10.5281/zenodo.23326733](https://doi.org/10.5281/zenodo.23326733)); legacy SILVA 138 model also available
 - Alignment fallback — EDLib pairwise alignment for borderline sequences (94% threshold, Yarza et al. 2014)
 - Optional primer trimming (`--primer-f` / `--primer-r`, cutadapt)
 - Accepts `.fastq`/`.fq` input, plain or gzipped
@@ -98,7 +98,7 @@ python download_model.py
 
 `conda env create` installs all tools and Python dependencies in one step, including `vsearch`, `mafft`, `edlib`, and the `metagenapp` package itself.
 
-`download_model.py` downloads the SILVA v1 classifier (~2.3 GB) from Zenodo ([10.5281/zenodo.20076968](https://doi.org/10.5281/zenodo.20076968)) into `~/.metagenapp/refs/`.
+`download_model.py` downloads the v1.1 reference files (~1.9 GB: `wang` classifier + SILVA 138.2 NR99 sequences and taxonomy) from Zenodo ([10.5281/zenodo.23326733](https://doi.org/10.5281/zenodo.23326733)) into `~/.metagenapp/refs/`, verifying their SHA-256 checksums. The legacy SILVA 138 `naive-v2` model (~2.3 GB, [10.5281/zenodo.20076968](https://doi.org/10.5281/zenodo.20076968)) is available with `python download_model.py --set v1.0`.
 
 To use a custom model path:
 
@@ -113,9 +113,8 @@ export METAGENAPP_REFS=/path/to/refs  # add to ~/.bashrc
 |---|---|
 | Repository | ~20 MB |
 | Conda environment | ~2–3 GB |
-| SILVA v1 model (Zenodo) | ~2.3 GB |
-| SILVA reference sequences | ~22 MB |
-| **Total** | **~5 GB** |
+| v1.1 reference files (Zenodo) | ~1.9 GB |
+| **Total** | **~4–5 GB** |
 
 ### Platform support
 
@@ -252,7 +251,9 @@ metagenapp -i <fastq_dir> -o <out_dir> \
   --min-length 400 --max-length 440 --max-ambigs 0 --max-poly 8 -t 16
 ```
 
-Reference files expected under `$METAGENAPP_REFS/16S_silva1382_full/`:
+Reference files expected under `$METAGENAPP_REFS/16S_silva1382_full/`, deposited
+on Zenodo ([10.5281/zenodo.23326733](https://doi.org/10.5281/zenodo.23326733);
+`python download_model.py --dest $METAGENAPP_REFS`):
 
 | File | Built with |
 |------|------------|
@@ -299,6 +300,11 @@ used in the ECCB 2026 manuscript is v1.1:
 
 > Campos Compeán, J.M. (2026). *MetagenApp v1.1* (v1.1). Zenodo.
 > https://doi.org/10.5281/zenodo.23325861
+
+Reference files (SILVA 138.2 NR99, `wang` classifier):
+
+> Campos Compeán, J.M. (2026). *MetagenApp v1.1 — 16S reference files (SILVA 138.2
+> NR99, Wang classifier)*. Zenodo. https://doi.org/10.5281/zenodo.23326733
 
 The badge at the top ([10.5281/zenodo.23325860](https://doi.org/10.5281/zenodo.23325860))
 is the concept DOI: it covers all versions and always resolves to the latest one.
