@@ -19,6 +19,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.request
 import urllib.error
 from pathlib import Path
@@ -155,31 +156,44 @@ def _checksums(path: Path) -> tuple[str, str]:
     return sha.hexdigest(), md5.hexdigest()
 
 
-def _upload_file(path: Path, files_url: str, token: str):
+def _upload_file(path: Path, files_url: str, token: str, attempts: int = 6):
     """Upload one file through the InvenioRDM draft files API (init, content, commit).
 
     The legacy bucket PUT (/api/files/<bucket>/<name>) returned 502 from Zenodo's
     nginx for the 1.2 GB model; the RDM API is the one the Zenodo web uploader uses.
+    Zenodo still answers 502 now and then in the middle of a long PUT, and after
+    that the entry stays locked ("already being uploaded"), so curl's own retries
+    are useless: each attempt deletes the entry and starts it again.
     """
     key = path.name
-    _request("POST", files_url, token, data=[{"key": key}])
-    cmd = [
-        "curl", "--progress-bar", "--fail-with-body",
-        # IPv4 + HTTP/1.1: long uploads over IPv6 were reset by peer (curl exit 56)
-        "-4", "--http1.1",
-        "--retry", "5", "--retry-all-errors", "--retry-delay", "15",
-        "-X", "PUT",
-        # Token read from stdin so it does not show up in `ps`
-        "-H", "@-",
-        "-H", "Content-Type: application/octet-stream",
-        "--upload-file", str(path),
-        f"{files_url}/{key}/content",
-    ]
-    result = subprocess.run(cmd, input=f"Authorization: Bearer {token}\n", text=True)
-    print()
-    if result.returncode != 0:
-        raise RuntimeError(f"curl upload failed (exit {result.returncode})")
-    _request("POST", f"{files_url}/{key}/commit", token)
+    for attempt in range(1, attempts + 1):
+        if attempt > 1:
+            wait = 60 * (attempt - 1)
+            print(f"  Attempt {attempt}/{attempts} in {wait} s...")
+            time.sleep(wait)
+            try:
+                _request("DELETE", f"{files_url}/{key}", token)
+            except RuntimeError as e:
+                print(f"  (delete before retry: {e})")
+        _request("POST", files_url, token, data=[{"key": key}])
+        cmd = [
+            "curl", "--progress-bar", "--fail-with-body",
+            # IPv4 + HTTP/1.1: long uploads over IPv6 were reset by peer (curl exit 56)
+            "-4", "--http1.1",
+            "-X", "PUT",
+            # Token read from stdin so it does not show up in `ps`
+            "-H", "@-",
+            "-H", "Content-Type: application/octet-stream",
+            "--upload-file", str(path),
+            f"{files_url}/{key}/content",
+        ]
+        result = subprocess.run(cmd, input=f"Authorization: Bearer {token}\n", text=True)
+        print()
+        if result.returncode == 0:
+            _request("POST", f"{files_url}/{key}/commit", token)
+            return
+        print(f"  curl failed (exit {result.returncode})")
+    raise RuntimeError(f"upload of {key} failed after {attempts} attempts")
 
 
 # ---------------------------------------------------------------------------
