@@ -249,6 +249,13 @@ def main():
     # 1. Create or resume deposition
     if args.resume:
         print(f"\n[1/4] Resuming deposition {args.resume}...")
+        # A pending file left by an interrupted upload makes the legacy deposition
+        # endpoint answer 500, so drop unfinished entries before calling it
+        resume_files = f"{ZENODO_API}/records/{args.resume}/draft/files"
+        for f in _request("GET", resume_files, token).get("entries", []):
+            if f.get("status") != "completed":
+                print(f"  Removing unfinished upload: {f['key']}")
+                _request("DELETE", f"{resume_files}/{f['key']}", token)
         dep = _request("GET", f"{ZENODO_API}/deposit/depositions/{args.resume}", token)
     else:
         print("\n[1/4] Creating Zenodo deposition...")
