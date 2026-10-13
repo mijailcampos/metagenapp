@@ -1,0 +1,13 @@
+"metric","comparison","friedman_chi2","friedman_p","wilcoxon_p_raw","wilcoxon_p_holm"
+"richness_obs","MetagenApp vs mothur",30.889,1.961e-07,1.753e-07,5.26e-07
+"richness_obs","MetagenApp vs QIIME2",30.889,1.961e-07,0.08538,0.08538
+"richness_obs","mothur vs QIIME2",30.889,1.961e-07,0.001466,0.002931
+"chao1","MetagenApp vs mothur",54.889,1.205e-12,1.753e-07,5.26e-07
+"chao1","MetagenApp vs QIIME2",54.889,1.205e-12,0.03883,0.03883
+"chao1","mothur vs QIIME2",54.889,1.205e-12,1.753e-07,5.26e-07
+"shannon","MetagenApp vs mothur",54.5,1.464e-12,0.06046,0.06046
+"shannon","MetagenApp vs QIIME2",54.5,1.464e-12,1.753e-07,5.26e-07
+"shannon","mothur vs QIIME2",54.5,1.464e-12,1.753e-07,5.26e-07
+"invsimpson","MetagenApp vs mothur",54.056,1.828e-12,0.1792,0.1792
+"invsimpson","MetagenApp vs QIIME2",54.056,1.828e-12,1.753e-07,5.26e-07
+"invsimpson","mothur vs QIIME2",54.056,1.828e-12,1.753e-07,5.26e-07

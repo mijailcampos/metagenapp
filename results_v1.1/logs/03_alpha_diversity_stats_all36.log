@@ -1,0 +1,50 @@
+Matched samples: 36 
+
+== richness_obs ==
+Friedman: chi2=30.889, df=2, p=0.00000
+  Wilcoxon MetagenApp vs mothur: raw p=0.00000, holm-adjusted p=0.00000
+  Wilcoxon MetagenApp vs QIIME2: raw p=0.08538, holm-adjusted p=0.08538
+  Wilcoxon mothur vs QIIME2: raw p=0.00147, holm-adjusted p=0.00293
+
+== chao1 ==
+Friedman: chi2=54.889, df=2, p=0.00000
+  Wilcoxon MetagenApp vs mothur: raw p=0.00000, holm-adjusted p=0.00000
+  Wilcoxon MetagenApp vs QIIME2: raw p=0.03883, holm-adjusted p=0.03883
+  Wilcoxon mothur vs QIIME2: raw p=0.00000, holm-adjusted p=0.00000
+
+== shannon ==
+Friedman: chi2=54.500, df=2, p=0.00000
+  Wilcoxon MetagenApp vs mothur: raw p=0.06046, holm-adjusted p=0.06046
+  Wilcoxon MetagenApp vs QIIME2: raw p=0.00000, holm-adjusted p=0.00000
+  Wilcoxon mothur vs QIIME2: raw p=0.00000, holm-adjusted p=0.00000
+
+== invsimpson ==
+Friedman: chi2=54.056, df=2, p=0.00000
+  Wilcoxon MetagenApp vs mothur: raw p=0.17919, holm-adjusted p=0.17919
+  Wilcoxon MetagenApp vs QIIME2: raw p=0.00000, holm-adjusted p=0.00000
+  Wilcoxon mothur vs QIIME2: raw p=0.00000, holm-adjusted p=0.00000
+
+Guardado: tables/alpha_diversity_paired_stats_all36.csv 
+
+===== sessionInfo =====
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-conda-linux-gnu (64-bit)
+Running under: Ubuntu 22.04.5 LTS
+
+Matrix products: default
+BLAS/LAPACK: /data/envs/qiime2/lib/libopenblasp-r0.3.28.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+ [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+ [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+[10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+loaded via a namespace (and not attached):
+[1] compiler_4.3.3

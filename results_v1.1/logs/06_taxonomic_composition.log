@@ -1,0 +1,61 @@
+Common samples: 36 
+
+== Top phyla per pipeline (mean relative abundance) ==
+-- MetagenApp --
+       Bacillota   Pseudomonadota     Bacteroidota   Actinomycetota 
+           39.37            33.81            15.50             6.49 
+  Fusobacteriota  Patescibacteria Campylobacterota    Spirochaetota 
+            3.56             0.84             0.37             0.05 
+    Synergistota  Acidobacteriota 
+            0.01             0.00 
+-- mothur --
+            Bacillota        Pseudomonadota          Bacteroidota 
+                39.42                 33.63                 14.47 
+       Actinomycetota        Fusobacteriota       Patescibacteria 
+                 7.50                  3.66                  0.82 
+     Campylobacterota         Spirochaetota       Acidobacteriota 
+                 0.36                  0.05                  0.02 
+Bacteria_unclassified 
+                 0.01 
+-- QIIME2 --
+       Bacillota   Pseudomonadota     Bacteroidota   Actinomycetota 
+           40.12            34.02            13.22             7.43 
+  Fusobacteriota  Patescibacteria Campylobacterota  Cyanobacteriota 
+            3.81             0.89             0.39             0.06 
+   Spirochaetota     Synergistota 
+            0.04             0.00 
+
+Top 8 filos globales (elegidos por abundancia maxima en cualquier pipeline):
+[1] "Bacillota"        "Pseudomonadota"   "Bacteroidota"     "Actinomycetota"  
+[5] "Fusobacteriota"   "Patescibacteria"  "Campylobacterota" "Cyanobacteriota" 
+
+Guardado: tables/taxonomic_composition_phylum.csv 
+
+===== sessionInfo =====
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-conda-linux-gnu (64-bit)
+Running under: Ubuntu 22.04.5 LTS
+
+Matrix products: default
+BLAS/LAPACK: /data/envs/qiime2/lib/libopenblasp-r0.3.28.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+ [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+ [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+[10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] dplyr_1.1.4
+
+loaded via a namespace (and not attached):
+ [1] tidyselect_1.2.1 compiler_4.3.3   magrittr_2.0.3   R6_2.5.1        
+ [5] generics_0.1.3   cli_3.6.3        pillar_1.9.0     glue_1.8.0      
+ [9] tibble_3.2.1     utf8_1.2.4       fansi_1.0.6      vctrs_0.6.5     
+[13] lifecycle_1.0.4  pkgconfig_2.0.3  rlang_1.1.7     

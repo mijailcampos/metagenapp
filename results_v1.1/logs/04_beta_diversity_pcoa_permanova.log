@@ -1,0 +1,88 @@
+Common samples: 36 
+PCoA var MetagenApp: PC1=42.8% PC2=11.3%
+PCoA var mothur:     PC1=42.4% PC2=11.5%
+PCoA var QIIME2:     PC1=31.3% PC2=9.1%
+null device 
+          1 
+Figura guardada: Figure_benchmark_beta_diversity.png 
+
+== Mantel tests (Bray-Curtis) == 
+MetagenApp vs mothur          r = 0.996  p = 0.0001 
+MetagenApp vs QIIME2          r = 0.972  p = 0.0001 
+mothur vs QIIME2              r = 0.969  p = 0.0001 
+
+== Procrustes (protest) == 
+MetagenApp vs mothur          M2 = 0.0050  p = 0.0001 
+MetagenApp vs QIIME2          M2 = 0.0340  p = 0.0001 
+mothur vs QIIME2              M2 = 0.0496  p = 0.0001 
+
+Filos en comun para PERMANOVA: 19 
+  Samples in combined PERMANOVA: 36 
+
+== PERMANOVA combinado (phylum-level, Bray-Curtis) == 
+Permutation test for adonis under reduced model
+Marginal effects of terms
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = bc_combined ~ pipeline_grp + sample_grp, permutations = 9999, by = "margin")
+              Df SumOfSqs      R2        F Pr(>F)    
+pipeline_grp   2    0.014 0.00106   21.281  1e-04 ***
+sample_grp    35   13.219 0.99721 1148.668  1e-04 ***
+Residual      70    0.023 0.00174                    
+Total        107   13.256 1.00000                    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+== Betadisper (dispersion por pipeline) == 
+
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 9999
+
+Response: Distances
+           Df  Sum Sq   Mean Sq      F N.Perm Pr(>F)
+Groups      2 0.00038 0.0001925 0.0064   9999 0.9946
+Residuals 105 3.14673 0.0299688                     
+
+Distancias medias al centroide: 
+MetagenApp     mothur     QIIME2 
+    0.3162     0.3149     0.3117 
+
+Resumen guardado en: tables/beta_diversity_summary.txt 
+
+===== sessionInfo =====
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-conda-linux-gnu (64-bit)
+Running under: Ubuntu 22.04.5 LTS
+
+Matrix products: default
+BLAS/LAPACK: /data/envs/qiime2/lib/libopenblasp-r0.3.28.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+ [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+ [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+[10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] grid      stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+[1] tidyr_1.3.1    dplyr_1.1.4    ggplot2_3.5.1  ape_5.8-1      vegan_2.6-8   
+[6] lattice_0.22-6 permute_0.9-7 
+
+loaded via a namespace (and not attached):
+ [1] vctrs_0.6.5      nlme_3.1-165     cli_3.6.3        rlang_1.1.7     
+ [5] purrr_1.0.2      generics_0.1.3   labeling_0.4.3   glue_1.8.0      
+ [9] colorspace_2.1-1 scales_1.3.0     fansi_1.0.6      munsell_0.5.1   
+[13] tibble_3.2.1     MASS_7.3-60.0.1  lifecycle_1.0.4  cluster_2.1.6   
+[17] compiler_4.3.3   pkgconfig_2.0.3  Rcpp_1.1.1       mgcv_1.9-1      
+[21] farver_2.1.2     digest_0.6.37    R6_2.5.1         tidyselect_1.2.1
+[25] utf8_1.2.4       pillar_1.9.0     parallel_4.3.3   splines_4.3.3   
+[29] magrittr_2.0.3   Matrix_1.6-5     withr_3.0.1      tools_4.3.3     
+[33] gtable_0.3.6    

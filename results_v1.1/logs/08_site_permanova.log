@@ -1,0 +1,186 @@
+Common samples: 36 
+
+==================== MetagenApp (n = 36; faringe 21, nariz 15) ====================
+
+-- PERMANOVA sitio (faringe vs nariz) --
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = bc ~ site, data = md, permutations = 9999)
+         Df SumOfSqs      R2      F Pr(>F)    
+Model     1   4.6380 0.38236 21.048  1e-04 ***
+Residual 34   7.4919 0.61764                  
+Total    35  12.1299 1.00000                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+-- betadisper por sitio --
+
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 9999
+
+Response: Distances
+          Df  Sum Sq  Mean Sq     F N.Perm Pr(>F)
+Groups     1 0.09116 0.091161 2.209   9999 0.1484
+Residuals 34 1.40309 0.041267                    
+   nose pharynx 
+ 0.4766  0.3745 
+
+-- PERMANOVA tipo de portador dentro de pharynx (n = 21) --
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = sub ~ carrier, data = md[keep, ], permutations = 9999)
+         Df SumOfSqs      R2      F Pr(>F)
+Model     2   0.1993 0.05733 0.5473 0.9566
+Residual 18   3.2772 0.94267              
+Total    20   3.4765 1.00000              
+
+-- PERMANOVA tipo de portador dentro de nose (n = 15) --
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = sub ~ carrier, data = md[keep, ], permutations = 9999)
+         Df SumOfSqs      R2      F Pr(>F)
+Model     2   0.6609 0.16459 1.1821 0.2843
+Residual 12   3.3545 0.83541              
+Total    14   4.0154 1.00000              
+
+==================== mothur (n = 36; faringe 21, nariz 15) ====================
+
+-- PERMANOVA sitio (faringe vs nariz) --
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = bc ~ site, data = md, permutations = 9999)
+         Df SumOfSqs      R2      F Pr(>F)    
+Model     1   4.6176 0.37986 20.827  1e-04 ***
+Residual 34   7.5384 0.62014                  
+Total    35  12.1561 1.00000                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+-- betadisper por sitio --
+
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 9999
+
+Response: Distances
+          Df  Sum Sq Mean Sq      F N.Perm Pr(>F)
+Groups     1 0.10529 0.10529 2.6867   9999 0.1124
+Residuals 34 1.33247 0.03919                     
+   nose pharynx 
+ 0.4841  0.3744 
+
+-- PERMANOVA tipo de portador dentro de pharynx (n = 21) --
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = sub ~ carrier, data = md[keep, ], permutations = 9999)
+         Df SumOfSqs      R2      F Pr(>F)
+Model     2   0.1666 0.04804 0.4541 0.9815
+Residual 18   3.3008 0.95196              
+Total    20   3.4673 1.00000              
+
+-- PERMANOVA tipo de portador dentro de nose (n = 15) --
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = sub ~ carrier, data = md[keep, ], permutations = 9999)
+         Df SumOfSqs      R2     F Pr(>F)
+Model     2   0.6958 0.17092 1.237 0.2433
+Residual 12   3.3752 0.82908             
+Total    14   4.0711 1.00000             
+
+==================== QIIME2 (n = 36; faringe 21, nariz 15) ====================
+
+-- PERMANOVA sitio (faringe vs nariz) --
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = bc ~ site, data = md, permutations = 9999)
+         Df SumOfSqs      R2      F Pr(>F)    
+Model     1   3.7302 0.27869 13.137  1e-04 ***
+Residual 34   9.6544 0.72131                  
+Total    35  13.3846 1.00000                  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+-- betadisper por sitio --
+
+Permutation test for homogeneity of multivariate dispersions
+Permutation: free
+Number of permutations: 9999
+
+Response: Distances
+          Df  Sum Sq  Mean Sq     F N.Perm Pr(>F)
+Groups     1 0.04641 0.046414 2.279   9999 0.1438
+Residuals 34 0.69245 0.020366                    
+   nose pharynx 
+ 0.5428  0.4700 
+
+-- PERMANOVA tipo de portador dentro de pharynx (n = 21) --
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = sub ~ carrier, data = md[keep, ], permutations = 9999)
+         Df SumOfSqs      R2      F Pr(>F)
+Model     2   0.3961 0.08018 0.7845 0.8853
+Residual 18   4.5437 0.91982              
+Total    20   4.9398 1.00000              
+
+-- PERMANOVA tipo de portador dentro de nose (n = 15) --
+Permutation test for adonis under reduced model
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = sub ~ carrier, data = md[keep, ], permutations = 9999)
+         Df SumOfSqs      R2      F Pr(>F)
+Model     2   0.8614 0.18272 1.3414 0.1581
+Residual 12   3.8532 0.81728              
+Total    14   4.7146 1.00000              
+
+===== sessionInfo =====
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-conda-linux-gnu (64-bit)
+Running under: Ubuntu 22.04.5 LTS
+
+Matrix products: default
+BLAS/LAPACK: /data/envs/qiime2/lib/libopenblasp-r0.3.28.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+ [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+ [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+[10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] grid      stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+[1] tidyr_1.3.1    dplyr_1.1.4    ggplot2_3.5.1  ape_5.8-1      vegan_2.6-8   
+[6] lattice_0.22-6 permute_0.9-7 
+
+loaded via a namespace (and not attached):
+ [1] vctrs_0.6.5      nlme_3.1-165     cli_3.6.3        rlang_1.1.7     
+ [5] purrr_1.0.2      generics_0.1.3   glue_1.8.0       colorspace_2.1-1
+ [9] scales_1.3.0     fansi_1.0.6      munsell_0.5.1    tibble_3.2.1    
+[13] MASS_7.3-60.0.1  lifecycle_1.0.4  cluster_2.1.6    compiler_4.3.3  
+[17] pkgconfig_2.0.3  Rcpp_1.1.1       mgcv_1.9-1       digest_0.6.37   
+[21] R6_2.5.1         tidyselect_1.2.1 utf8_1.2.4       pillar_1.9.0    
+[25] parallel_4.3.3   splines_4.3.3    magrittr_2.0.3   Matrix_1.6-5    
+[29] withr_3.0.1      tools_4.3.3      gtable_0.3.6    

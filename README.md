@@ -14,6 +14,13 @@ A web interface built on this pipeline is available at **[demo.bioagens.com](htt
 
 ## Benchmark: MetagenApp vs mothur vs QIIME 2 (v2, ECCB 2026)
 
+> **Manuscript (v1.1).** The results reported in the manuscript use MetagenApp
+> [v1.1](https://doi.org/10.5281/zenodo.23325861). Its statistics and scripts are in
+> [`results_v1.1/`](results_v1.1/), and the outputs of the three pipelines are on Zenodo
+> ([10.5281/zenodo.23349702](https://doi.org/10.5281/zenodo.23349702)). The section below
+> describes the earlier v2 benchmark shown on the ECCB 2026 poster; its numbers differ from
+> the manuscript.
+
 Presented at **ECCB 2026** (Geneva, poster A-B.05):
 *"Impact of bioinformatic pipeline selection on microbial community inference:
 a comparative analysis across pipelines including MetagenApp"*
@@ -219,7 +226,8 @@ metagenapp/
 │   ├── train_naive_v2.py # Train a new naive-v2 model
 │   ├── build_silva_trainset.py
 │   └── dev/              # Internal / experimental scripts
-├── results_v2/           # Benchmark v2 (ECCB 2026): figure + summary tables
+├── results_v1.1/         # Manuscript benchmark: statistics scripts, tables, figure
+├── results_v2/           # Benchmark v2 (ECCB 2026 poster, historical)
 ├── docs/                 # ECCB 2026 poster
 ├── results_v1/           # Benchmark v1.0 (superseded, see below)
 │   ├── tables/           # TSV tables (OTU, taxonomy, resources)
@@ -263,6 +271,12 @@ on Zenodo ([10.5281/zenodo.23326733](https://doi.org/10.5281/zenodo.23326733);
 The classifier was validated against mothur `classify.seqs` on the same 90/10
 split of SILVA 138.2 (`scripts/cv_*.py`).
 
+Outputs of MetagenApp, mothur and QIIME 2 (36 libraries and three mock communities),
+with the mothur and QIIME 2 reference files, are on Zenodo
+([10.5281/zenodo.23349702](https://doi.org/10.5281/zenodo.23349702)). The statistics,
+tables and beta-diversity figure are regenerated from them with
+`bash results_v1.1/run_all.sh` (see [`results_v1.1/README.md`](results_v1.1/README.md)).
+
 ### v2 (ECCB 2026 poster, superseded by v1.1)
 
 MetagenApp command used in the v2 benchmark:
@@ -305,6 +319,12 @@ Reference files (SILVA 138.2 NR99, `wang` classifier):
 
 > Campos Compeán, J.M. (2026). *MetagenApp v1.1 — 16S reference files (SILVA 138.2
 > NR99, Wang classifier)*. Zenodo. https://doi.org/10.5281/zenodo.23326733
+
+Benchmark outputs (MetagenApp, mothur and QIIME 2) and mothur/QIIME 2 reference files:
+
+> Campos Compeán, J.M. (2026). *MetagenApp v1.1 benchmark — outputs of MetagenApp,
+> mothur and QIIME 2, and reference files* (1.1). Zenodo.
+> https://doi.org/10.5281/zenodo.23349702
 
 The badge at the top ([10.5281/zenodo.23325860](https://doi.org/10.5281/zenodo.23325860))
 is the concept DOI: it covers all versions and always resolves to the latest one.

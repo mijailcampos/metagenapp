@@ -1,0 +1,35 @@
+Loading required package: permute
+Loading required package: lattice
+This is vegan 2.6-8
+n por pipeline: 36 36 36  min_depth = 4963 
+metagenapp medianas: richness_obs=110.17 chao1=149.14 shannon=2.89 invsimpson=9.43 
+mothur medianas: richness_obs=151.87 chao1=353.94 shannon=2.88 invsimpson=8.93 
+qiime2 medianas: richness_obs=129.19 chao1=134.32 shannon=3.46 invsimpson=12.33 
+
+===== sessionInfo =====
+R version 4.3.3 (2024-02-29)
+Platform: x86_64-conda-linux-gnu (64-bit)
+Running under: Ubuntu 22.04.5 LTS
+
+Matrix products: default
+BLAS/LAPACK: /data/envs/qiime2/lib/libopenblasp-r0.3.28.so;  LAPACK version 3.12.0
+
+locale:
+ [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+ [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+ [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+[10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+
+time zone: Etc/UTC
+tzcode source: system (glibc)
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+[1] vegan_2.6-8    lattice_0.22-6 permute_0.9-7 
+
+loaded via a namespace (and not attached):
+ [1] MASS_7.3-60.0.1 compiler_4.3.3  Matrix_1.6-5    parallel_4.3.3 
+ [5] tools_4.3.3     mgcv_1.9-1      splines_4.3.3   nlme_3.1-165   
+ [9] grid_4.3.3      cluster_2.1.6  

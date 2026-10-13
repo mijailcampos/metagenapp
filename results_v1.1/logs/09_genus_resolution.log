@@ -1,0 +1,10 @@
+pipeline                       MetagenApp      mothur   QIIME 2
+features                            615.0     8,059.0   1,332.0
+unique_genera                       281.0       599.0     225.0
+reads_Classified                     92.7        92.7      92.2
+features_Classified                  86.8        83.9      89.3
+reads_Ambiguous/propagated            1.9         7.3       2.1
+features_Ambiguous/propagated         8.0        16.1       7.4
+reads_Unclassified                    5.4         0.0       5.7
+features_Unclassified                 5.2         0.0       3.2
+total_reads                   1,015,894.0 1,149,870.0 998,709.0

@@ -1,0 +1,5 @@
+data/
+benchmark_outputs_v1.1.tar.gz
+rarefaction/abundance_matrices.rds
+permanova_strata/
+site_permanova/
