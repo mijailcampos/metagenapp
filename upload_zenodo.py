@@ -4,6 +4,8 @@ Upload MetagenApp reference files to Zenodo.
 Usage:
     python upload_zenodo.py                 # v1.1 reference files (default)
     python upload_zenodo.py --set v1.0      # legacy v1.0 model
+    METAGENAPP_REFS=/path/to/upload python upload_zenodo.py --set bench-v1.1
+                                            # benchmark outputs + mothur/QIIME 2 references
     python upload_zenodo.py --resume DEP_ID # continue an existing draft
 
 Files are read from $METAGENAPP_REFS (default: /data/databases/metagenapp_refs).
@@ -81,6 +83,63 @@ SETS = {
             "version": "1.1",
             "related_identifiers": [
                 {"identifier": SOFTWARE_DOI_V11, "relation": "isSupplementTo", "scheme": "doi"},
+                {"identifier": "10.1093/nar/gks1219", "relation": "isDerivedFrom", "scheme": "doi"},
+            ],
+        },
+    },
+    # bench-v1.1: outputs of the three pipelines in the v1.1 benchmark, plus the mothur and
+    # QIIME 2 reference files. Run with METAGENAPP_REFS pointing at the staged upload folder.
+    "bench-v1.1": {
+        "files": [
+            "README.md",
+            "benchmark_outputs_v1.1.tar.gz",
+            "silva-138.2-99-nb-classifier.qza",
+            "silva_138_2_nr99_mothur.filtered.tax.gz",
+            "silva.seed_v138_2.pcr.align.gz",
+            "silva_subset.py",
+        ],
+        "metadata": {
+            "title": "MetagenApp v1.1 benchmark — outputs of MetagenApp, mothur and QIIME 2, "
+                     "and reference files",
+            "upload_type": "dataset",
+            "description": (
+                "Final outputs of the three pipelines compared in the MetagenApp benchmark "
+                "manuscript (ECCB 2026 Research Topic, Frontiers): MetagenApp v1.1 "
+                f"(https://doi.org/{SOFTWARE_DOI_V11}), mothur v.1.48.5 and QIIME 2 2024.10.1, "
+                "on 36 nasal/pharyngeal 16S rRNA V3–V4 libraries (SRA PRJNA1051577) and three "
+                "mock communities (PRJNA667146, PRJNA659641)."
+                "<ul>"
+                "<li><b>benchmark_outputs_v1.1.tar.gz</b> — for each pipeline and dataset: "
+                "feature tables, taxonomic assignments, representative sequences, run scripts "
+                "and logs (QIIME 2 artifacts include their provenance); sample metadata and the "
+                "expected composition of the mocks.</li>"
+                "<li><b>silva-138.2-99-nb-classifier.qza</b> — QIIME 2 classifier "
+                "(SILVA 138.2 NR99, full length, RESCRIPt).</li>"
+                "<li><b>silva_138_2_nr99_mothur.filtered.tax.gz</b> — mothur classification "
+                "taxonomy (lineages to species).</li>"
+                "<li><b>silva.seed_v138_2.pcr.align.gz</b> — mothur alignment template.</li>"
+                "<li><b>silva_subset.py</b> — rebuilds the mothur classification FASTA from the "
+                "official SILVA 138.2 file (checksum-verified recipe in README.md).</li>"
+                "</ul>"
+                "<p>MetagenApp reference files: https://doi.org/10.5281/zenodo.23326733. "
+                "Analysis scripts: https://github.com/mijailcampos/metagenapp. "
+                "See README.md for the layout, units (OTUs vs ASVs), parameters and the "
+                "correspondence with the manuscript tables.</p>"
+                "<p>SHA-256 checksums:</p>{checksums}"
+                "<p>Reference files are derived from SILVA 138.2 (CC BY 4.0). Please also cite: "
+                "Quast C. et al. (2013) Nucleic Acids Research 41(D1):D590–D596. "
+                "https://doi.org/10.1093/nar/gks1219</p>"
+            ),
+            "creators": [{"name": "Campos Compeán, José Mijail", "affiliation": ""}],
+            "keywords": [
+                "16S rRNA", "metabarcoding", "benchmark", "mock community", "mothur",
+                "QIIME 2", "SILVA", "microbiome", "bioinformatics",
+            ],
+            "license": "cc-by-4.0",
+            "version": "1.1",
+            "related_identifiers": [
+                {"identifier": SOFTWARE_DOI_V11, "relation": "isSupplementTo", "scheme": "doi"},
+                {"identifier": "10.5281/zenodo.23326733", "relation": "references", "scheme": "doi"},
                 {"identifier": "10.1093/nar/gks1219", "relation": "isDerivedFrom", "scheme": "doi"},
             ],
         },
