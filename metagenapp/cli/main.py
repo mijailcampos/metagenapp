@@ -137,6 +137,16 @@ def main(
         help="Reverse primer; its reverse complement is trimmed from the 3' end [dim](requires --primer-f)[/dim]",
     ),
 
+    chimera_mode: str = typer.Option(
+        "pooled",
+        "--chimera-mode",
+        help=(
+            "De novo chimera removal in [bold]ref[/bold] mode: [bold]pooled[/bold] all samples together "
+            "(one core) | [bold]per-sample[/bold] each sample separately, in parallel "
+            "[dim](default: pooled)[/dim]"
+        ),
+    ),
+
     extract_centroids: str = typer.Option(
         "full",
         "--extract-centroids",
@@ -234,6 +244,19 @@ def main(
     classifier = classifier.lower()
     marker     = marker.upper()
     model_type = model_type.lower()
+    chimera_mode = chimera_mode.lower()
+
+    # ========================================================
+    # Validate chimera mode
+    # ========================================================
+    from metagenapp.pipeline.chimera_denovo_uniques import CHIMERA_MODES
+
+    if chimera_mode not in CHIMERA_MODES:
+
+        typer.echo(f"❌ Invalid chimera mode: {chimera_mode}")
+        typer.echo(f"Valid chimera modes are: {', '.join(CHIMERA_MODES)}")
+
+        raise typer.Exit(code=1)
 
     # ========================================================
     # Validate mode
@@ -343,6 +366,7 @@ def main(
         from_step=from_step,
         primer_f=primer_f,
         primer_r=primer_r,
+        chimera_mode=chimera_mode,
     )
 
 

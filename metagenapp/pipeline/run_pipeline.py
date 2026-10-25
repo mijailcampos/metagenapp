@@ -21,7 +21,7 @@ from metagenapp.pipeline.assemble_contigs import assemble_contigs
 from metagenapp.pipeline.filter_contigs import filter_contigs
 from metagenapp.pipeline.trim_primers import trim_primers_cutadapt
 from metagenapp.pipeline.unique_contigs import generate_unique_contigs
-from metagenapp.pipeline.chimera_denovo_uniques import remove_chimeras_from_uniques
+from metagenapp.pipeline.chimera_denovo_uniques import remove_chimeras_from_uniques, remove_chimeras_per_sample
 from metagenapp.pipeline.alignment import align_centroids_refmode_professional
 from metagenapp.pipeline.alignment import vsearch_map_centroids_to_reference
 from metagenapp.pipeline.recorte_vsearch import recortar_por_alnout
@@ -70,6 +70,7 @@ def run_pipeline(
     extract_centroids="full",
     primer_f=None,
     primer_r=None,
+    chimera_mode="pooled",
 ):
 
 
@@ -387,7 +388,10 @@ def run_pipeline(
     if mode == "ref" and classifier in ("naive-v2", "wang") and should_run("03b_Chimera_denovo"):
         start_step("03b_Chimera_denovo")
         try:
-            _, _, chim_stats = remove_chimeras_from_uniques(
+            remove_chimeras = (remove_chimeras_per_sample if chimera_mode == "per-sample"
+                               else remove_chimeras_from_uniques)
+            print(f"   mode: {chimera_mode}")
+            _, _, chim_stats = remove_chimeras(
                 unique_fasta=unique_fasta,
                 unique_count=unique_count,
                 output_fasta=nochim_unique_fasta,
@@ -403,6 +407,11 @@ def run_pipeline(
             f"{chim_stats['reads_chimeric']:,} of {chim_stats['reads_in']:,} reads removed "
             f"({chim_stats['reads_out']:,} retained)"
         )
+        if "uniques_chimeric_some_samples" in chim_stats:
+            print(
+                f"   {chim_stats['uniques_chimeric_some_samples']:,} more unique sequences chimeric only in "
+                f"some samples (removed there, kept in the rest)"
+            )
         end_step(success=True)
     if mode == "ref" and classifier in ("naive-v2", "wang"):
         unique_fasta = nochim_unique_fasta
