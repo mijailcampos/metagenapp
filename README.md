@@ -146,6 +146,10 @@ metagenapp --profile ref --input /path/to/fastq/
 metagenapp -i data/ -o results/ --from-step clasificacion_tax
 ```
 
+In `ref` mode, de novo chimeras (VSEARCH `--uchime_denovo`) are removed sample by
+sample, in parallel, since v1.2 (`--chimera-mode per-sample`, default). Use
+`--chimera-mode pooled` for the v1.1 behaviour (all samples together, one core).
+
 ---
 
 ## Pipeline overview
@@ -304,6 +308,21 @@ The first benchmark (tag [`v1.0`](https://github.com/mijailcampos/metagenapp/rel
 reduced its read retention (12.6%) and made the comparison unfair to QIIME 2.
 It is kept for transparency and is superseded by the v2 benchmark above,
 where all three pipelines share the same primer trimming and reference.
+
+---
+
+## Changes in v1.2
+
+- De novo chimera removal per sample, in parallel (`--chimera-mode per-sample`,
+  now the default): one single-threaded `vsearch --uchime_denovo` per sample, as
+  mothur `chimera.vsearch dereplicate=t`. A unique flagged as chimeric is removed
+  only in the samples where it was flagged.
+- On 40 marine 16S V1–V3 samples (32 threads) the whole run took 0.7 h instead of
+  5.5 h with v1.1, with the same community structure (Mantel r = 0.99 between
+  versions; mean genus-level Bray-Curtis 0.045 per sample). On four Zymo mock
+  communities, accuracy was unchanged.
+- `--chimera-mode pooled` keeps the v1.1 behaviour. The manuscript results
+  were produced with tag `v1.1` (see below).
 
 ---
 

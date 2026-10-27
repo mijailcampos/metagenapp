@@ -138,12 +138,12 @@ def main(
     ),
 
     chimera_mode: str = typer.Option(
-        "pooled",
+        "per-sample",
         "--chimera-mode",
         help=(
             "De novo chimera removal in [bold]ref[/bold] mode: [bold]pooled[/bold] all samples together "
-            "(one core) | [bold]per-sample[/bold] each sample separately, in parallel "
-            "[dim](default: pooled)[/dim]"
+            "(one core; v1.1 behaviour) | [bold]per-sample[/bold] each sample separately, in parallel "
+            "[dim](default: per-sample)[/dim]"
         ),
     ),
 

@@ -70,7 +70,7 @@ def run_pipeline(
     extract_centroids="full",
     primer_f=None,
     primer_r=None,
-    chimera_mode="pooled",
+    chimera_mode="per-sample",
 ):
 
 
