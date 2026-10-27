@@ -9,8 +9,11 @@ repository-code: https://github.com/mijailcampos/metagenapp
 license: MIT
 version: "1.2"
 date-released: 2026-10-27
-doi: 10.5281/zenodo.23325860
+doi: 10.5281/zenodo.23680976
 identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23680976
+    description: MetagenApp v1.2 (per-sample chimera removal)
   - type: doi
     value: 10.5281/zenodo.23325861
     description: MetagenApp v1.1 (version used in the ECCB 2026 manuscript)

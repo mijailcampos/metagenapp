@@ -328,8 +328,13 @@ where all three pipelines share the same primer trimming and reference.
 
 ## Citation
 
-If you use MetagenApp, please cite the software release you used. The version
-used in the ECCB 2026 manuscript is v1.1:
+If you use MetagenApp, please cite the software release you used. The current
+version is v1.2:
+
+> Campos Compeán, J.M. (2026). *MetagenApp v1.2* (v1.2). Zenodo.
+> https://doi.org/10.5281/zenodo.23680976
+
+The version used in the ECCB 2026 manuscript is v1.1:
 
 > Campos Compeán, J.M. (2026). *MetagenApp v1.1* (v1.1). Zenodo.
 > https://doi.org/10.5281/zenodo.23325861
