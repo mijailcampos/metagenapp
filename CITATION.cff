@@ -7,9 +7,9 @@ authors:
     given-names: José Mijail
 repository-code: https://github.com/mijailcampos/metagenapp
 license: MIT
-version: "1.1"
-date-released: 2026-10-12
-doi: 10.5281/zenodo.23325861
+version: "1.2"
+date-released: 2026-10-27
+doi: 10.5281/zenodo.23325860
 identifiers:
   - type: doi
     value: 10.5281/zenodo.23325861
