@@ -9,8 +9,11 @@ repository-code: https://github.com/mijailcampos/metagenapp
 license: MIT
 version: "1.2.1"
 date-released: 2026-11-04
-doi: 10.5281/zenodo.23325860
+doi: 10.5281/zenodo.23965368
 identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23965368
+    description: MetagenApp v1.2.1 (install fixes and wang default)
   - type: doi
     value: 10.5281/zenodo.23680976
     description: MetagenApp v1.2 (per-sample chimera removal)
