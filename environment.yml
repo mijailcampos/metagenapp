@@ -7,7 +7,8 @@ dependencies:
   - python>=3.9
   - vsearch>=2.22
   - mafft>=7.5
-  - edlib
+  - python-edlib
+  - psutil
   - cutadapt>=4.0
   - biopython>=1.81
   - joblib>=1.3

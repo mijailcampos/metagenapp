@@ -50,6 +50,22 @@ Total        107   13.256 1.00000
 ---
 Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
+== (C) sample: permutacion dentro de pipeline (blocks = pipeline) ==
+Permutation test for adonis under reduced model
+Marginal effects of terms
+Blocks:  pipeline_grp 
+Permutation: free
+Number of permutations: 9999
+
+adonis2(formula = bc_combined ~ pipeline_grp + sample_grp, permutations = ctrl2, by = "margin")
+              Df SumOfSqs      R2        F Pr(>F)    
+pipeline_grp   2    0.014 0.00106   21.281  1e-04 ***
+sample_grp    35   13.219 0.99721 1148.668  1e-04 ***
+Residual      70    0.023 0.00174                    
+Total        107   13.256 1.00000                    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
 ===== sessionInfo =====
 R version 4.3.3 (2024-02-29)
 Platform: x86_64-conda-linux-gnu (64-bit)

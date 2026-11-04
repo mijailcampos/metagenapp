@@ -82,10 +82,11 @@ def main(
     ),
 
     classifier: str = typer.Option(
-        "naive-v2",
+        None,
         "--classifier",
         help=(
-            "[bold]wang[/bold]        Wang et al. (2007), k=8 + bootstrap, SILVA 138.2 [dim](recommended for 16S)[/dim]\n"
+            "[dim]Default: wang for --mode ref with 16S, otherwise naive-v2[/dim]\n"
+            "[bold]wang[/bold]        Wang et al. (2007), k=8 + bootstrap, SILVA 138.2, 16S only [dim](recommended for 16S)[/dim]\n"
             "[bold]naive-v2[/bold]    Wang bootstrap k-mer\n"
             "[bold]kraken-lite[/bold] k-mer + LCA (SILVA 138)\n"
             "[bold]flat[/bold]        simple assigner\n"
@@ -241,8 +242,12 @@ def main(
     # Normalize case
     # ========================================================
     mode       = mode.lower()
-    classifier = classifier.lower()
     marker     = marker.upper()
+    # wang is the configuration evaluated in the v1.1 benchmark (--mode ref, 16S);
+    # every other combination keeps the previous default
+    if classifier is None:
+        classifier = "wang" if mode == "ref" and marker == "16S" else "naive-v2"
+    classifier = classifier.lower()
     model_type = model_type.lower()
     chimera_mode = chimera_mode.lower()
 

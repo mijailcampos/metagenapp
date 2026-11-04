@@ -254,7 +254,7 @@ bc_combined <- vegdist(combined, method = "bray")
 # Cada muestra aparece 3 veces (una por pipeline). Para probar el efecto pipeline
 # se permutan las etiquetas de pipeline SOLO dentro de cada muestra (blocks).
 # El término sample_grp no se puede probar con este esquema (es constante dentro
-# de cada bloque); su R2 no cambia y su p se toma de la corrida con permutación libre.
+# de cada bloque); su p válido es el del esquema (C), permutando dentro de cada pipeline.
 cat("\n== (A) PERMANOVA permutacion LIBRE (igual que el manuscrito) ==\n")
 set.seed(19760620)
 print(adonis2(bc_combined ~ pipeline_grp + sample_grp, permutations = 9999, by = "margin"))
@@ -263,4 +263,9 @@ cat("\n== (B) PERMANOVA permutacion RESTRINGIDA dentro de muestra (blocks = samp
 set.seed(19760620)
 ctrl <- permute::how(blocks = sample_grp, nperm = 9999)
 print(adonis2(bc_combined ~ pipeline_grp + sample_grp, permutations = ctrl, by = "margin"))
+
+cat("\n== (C) sample: permutacion dentro de pipeline (blocks = pipeline) ==\n")
+set.seed(19760620)
+ctrl2 <- permute::how(blocks = pipeline_grp, nperm = 9999)
+print(adonis2(bc_combined ~ pipeline_grp + sample_grp, permutations = ctrl2, by = "margin"))
 cat("\n===== sessionInfo =====\n"); print(sessionInfo())
