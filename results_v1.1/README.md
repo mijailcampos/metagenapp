@@ -33,7 +33,7 @@ from that run.
 | 4 | `beta_diversity_pcoa_permanova.R` | `tables/beta_diversity_summary.txt`, `tables/pcoa_coords_*.csv`, `figures/Figure_benchmark_beta_diversity.png` (Bray–Curtis PCoA, PERMANOVA, betadisper, Mantel, Procrustes) |
 | 5 | `pcoa_variance.R` | `tables/pcoa_variance_explained.csv` |
 | 6 | `taxonomic_composition.R` | `tables/taxonomic_composition_phylum.csv` |
-| 7 | `permanova_strata.R` | `logs/07_permanova_strata.log` (combined PERMANOVA with free and within-sample restricted permutations) |
+| 7 | `permanova_strata.R` | `logs/07_permanova_strata.log` (combined PERMANOVA with free, within-sample and within-pipeline restricted permutations) |
 | 8 | `site_permanova.R` | `logs/08_site_permanova.log` (site and carrier PERMANOVA per pipeline) |
 | 9 | `genus_resolution.py` | `tables/genus_resolution_table6.tsv` (Table 6) |
 

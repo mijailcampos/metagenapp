@@ -15,7 +15,10 @@ A web interface built on this pipeline is available at **[demo.bioagens.com](htt
 ## Benchmark: MetagenApp vs mothur vs QIIME 2 (v2, ECCB 2026)
 
 > **Manuscript (v1.1).** The results reported in the manuscript use MetagenApp
-> [v1.1](https://doi.org/10.5281/zenodo.23325861). Its statistics and scripts are in
+> [v1.1](https://doi.org/10.5281/zenodo.23325861). Release v1.1.1 runs the same pipeline code
+> and adds the final statistics, the corrected reference download and the missing install
+> dependencies; `wang` is now the default classifier for `--mode ref` with 16S. Its statistics
+> and scripts are in
 > [`results_v1.1/`](results_v1.1/), and the outputs of the three pipelines are on Zenodo
 > ([10.5281/zenodo.23349702](https://doi.org/10.5281/zenodo.23349702)). The section below
 > describes the earlier v2 benchmark shown on the ECCB 2026 poster; its numbers differ from
@@ -106,6 +109,8 @@ python download_model.py
 `conda env create` installs all tools and Python dependencies in one step, including `vsearch`, `mafft`, `edlib`, and the `metagenapp` package itself.
 
 `download_model.py` downloads the v1.1 reference files (~1.9 GB: `wang` classifier + SILVA 138.2 NR99 sequences and taxonomy) from Zenodo ([10.5281/zenodo.23326733](https://doi.org/10.5281/zenodo.23326733)) into `~/.metagenapp/refs/`, verifying their SHA-256 checksums. The legacy SILVA 138 `naive-v2` model (~2.3 GB, [10.5281/zenodo.20076968](https://doi.org/10.5281/zenodo.20076968)) is available with `python download_model.py --set v1.0`.
+
+The other execution modes (`student`, `premium`, `turbo`) and `naive-v2` need the legacy set (`--set v1.0`).
 
 To use a custom model path:
 

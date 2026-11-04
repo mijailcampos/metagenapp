@@ -34,9 +34,9 @@ echo -e "${CYAN}[2/4] Creando entorno conda (metagenapp)...${RESET}"
 echo -e "  ${YELLOW}Esto puede tardar unos minutos.${RESET}"
 conda env create -f environment.yml
 
-# ── 3. Descargar modelo SILVA v1 ────────────────────────────────
+# ── 3. Descargar referencias v1.1 ───────────────────────────────
 echo ""
-echo -e "${CYAN}[3/4] Descargando modelo SILVA v1 (~2.3 GB)...${RESET}"
+echo -e "${CYAN}[3/4] Descargando referencias v1.1: wang + SILVA 138.2 (~1.9 GB)...${RESET}"
 echo -e "  ${YELLOW}Esto puede tardar varios minutos dependiendo de tu conexión.${RESET}"
 conda run -n metagenapp python download_model.py
 
