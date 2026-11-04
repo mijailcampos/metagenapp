@@ -22,7 +22,8 @@ A web interface built on this pipeline is available at **[demo.bioagens.com](htt
 > [`results_v1.1/`](results_v1.1/), and the outputs of the three pipelines are on Zenodo
 > ([10.5281/zenodo.23349702](https://doi.org/10.5281/zenodo.23349702)). The section below
 > describes the earlier v2 benchmark shown on the ECCB 2026 poster; its numbers differ from
-> the manuscript.
+> the manuscript. The scripts and source data of the manuscript figures are in
+> [`figures_manuscript/`](figures_manuscript/).
 
 Presented at **ECCB 2026** (Geneva, poster A-B.05):
 *"Impact of bioinformatic pipeline selection on microbial community inference:

@@ -1,0 +1,10 @@
+pipeline	mock	n	reads	features	genera	genera_all_reps	low_detected	unexpected_pct	BC_pooled	BC_rep_mean	BC_rep_sd	BC_rep_min	BC_rep_max	BC_if_Enterobacteriaceae_as_Salmonella
+MetagenApp	HM-782D	6	89507	28	17/17	17/17		0.03	0.168	0.171	0.008	0.158	0.179	
+MetagenApp	HM-783D	6	98105	30	17/17	15/17	4/4	0.06	0.146	0.156	0.02	0.123	0.178	
+mothur	HM-782D	6	90092	782	17/17	17/17		0.09	0.163	0.165	0.012	0.142	0.173	
+mothur	HM-783D	6	107942	736	17/17	15/17	4/4	0.13	0.14	0.15	0.019	0.124	0.176	
+QIIME 2	HM-782D	6	77757	32	17/17	17/17		0.01	0.162	0.167	0.014	0.142	0.18	
+QIIME 2	HM-783D	6	95107	30	16/17	12/17	3/4	0.02	0.145	0.159	0.02	0.127	0.184	
+MetagenApp	D6306	5	104678	18	8/8	8/8		0.04	0.072	0.072	0.004	0.066	0.076	
+mothur	D6306	5	104338	569	8/8	8/8		0.23	0.077	0.077	0.005	0.069	0.081	
+QIIME 2	D6306	5	97167	19	7/8	7/8		11.86	0.172	0.172	0.004	0.169	0.176	0.068
