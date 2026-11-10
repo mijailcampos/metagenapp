@@ -96,7 +96,7 @@ class PipelineRequest(BaseModel):
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 def _job_to_dict(job: job_store.Job) -> dict:
-    total = len(job_store.PIPELINE_STEPS)
+    total = len(job_store.steps_for_config(job.config))  # BIOS-479
     done = len(job.steps_done)
     elapsed = None
     if job.created_at and job.finished_at:

@@ -22,7 +22,6 @@ PIPELINE_STEPS = [
     "14_MAFFT_Filter",
     "15_Filter_Columns",
     "16_Unique_MAFFT",
-    "17_Precluster",
     "18_ChimeraDetection",
     "20_TaxonomicClassification",
     "21_RemoveLineages",
@@ -32,6 +31,27 @@ PIPELINE_STEPS = [
     "25_Assign_Taxonomy_to_ASVs",
     "26_ASV_Summary_Table",
 ]
+
+# BIOS-479: pasos que run_pipeline.py salta en modo "ref" con wang/naive-v2
+# (lo único que acepta metagenapp-gui): las quimeras se quitan antes (03b) y
+# las OTUs salen del clustering, así que no corren el filtrado MAFFT, la
+# segunda revisión de quimeras ni el paso de OTUs. 17_Precluster ya no está
+# en la lista: ningún paso lo ejecuta.
+_REF_SKIPPED_STEPS = {
+    "14_MAFFT_Filter",
+    "15_Filter_Columns",
+    "16_Unique_MAFFT",
+    "18_ChimeraDetection",
+    "23_Generate_OTUs",
+}
+
+
+def steps_for_config(config: dict) -> List[str]:
+    """Pasos que de verdad corren con esta config (total de la barra de progreso)."""
+    if config.get("mode") == "ref" and config.get("classifier") in ("naive-v2", "wang"):
+        return [s for s in PIPELINE_STEPS if s not in _REF_SKIPPED_STEPS]
+    return PIPELINE_STEPS
+
 
 RESULT_FILES = [
     "final_asv_table.tsv",

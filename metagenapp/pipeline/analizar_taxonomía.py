@@ -37,12 +37,16 @@ def parse_taxonomy(taxon_str):
             resultado[nivel] = partes[i]
 
     # ======================================
-    # 4. Corrección inteligente del género
-    # Si el último elemento válido parece género → lo asigna
+    # 4. Rangos 'Incertae_Sedis' (SILVA): no son un taxón; se etiquetan con el
+    # rango superior con nombre, p. ej. 'Muribaculaceae (incertae sedis)', para
+    # que no se junten familias distintas en un falso género (BIOS-478/479).
     # ======================================
-    for p in reversed(partes):
-        if p not in ["Root", "Bacteria", "Archaea", "Eukaryota", "Unclassified", "", None]:
-            resultado["Genus"] = p
-            break
+    for i, nivel in enumerate(niveles[1:], start=1):
+        if resultado[nivel].lower().startswith("incertae_sedis"):
+            padre = next((resultado[n] for n in reversed(niveles[:i])
+                          if resultado[n] != "Unclassified"
+                          and not resultado[n].lower().startswith("incertae_sedis")), None)
+            if padre:
+                resultado[nivel] = f"{padre.split(' (')[0]} (incertae sedis)"
 
     return resultado

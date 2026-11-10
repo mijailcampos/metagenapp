@@ -109,7 +109,6 @@ def run_pipeline(
         "14_MAFFT_Filter",
         "15_Filter_Columns",
         "16_Unique_MAFFT",
-        "17_Precluster",
         "18_ChimeraDetection",
         "20_TaxonomicClassification",
         "21_RemoveLineages",
