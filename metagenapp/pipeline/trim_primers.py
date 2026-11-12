@@ -61,12 +61,23 @@ def trim_primers_cutadapt(
 
     primer_r_rc = str(Seq(primer_r).reverse_complement())
 
-    # Adaptador enlazado (linked adapter), anclado en ambos extremos: exige que
-    # el amplicon completo empiece con primer_f y termine con RC(primer_r).
-    # (probado: -g/-a sueltos sin anclar NO detectan el primer 5' aunque este
-    # presente al inicio exacto del contig; y sin adaptador enlazado,
-    # --discard-untrimmed solo exige encontrar UNO de los dos, no ambos)
-    linked_adapter = f'^{primer_f}...{primer_r_rc}$'
+    # Adaptador enlazado (linked adapter) SIN anclar, con ambos primers
+    # obligatorios. min_overlap = longitud del primer menos los errores que
+    # cutadapt permite por defecto (10 %: 17 nt -> 16, 21 nt -> 19), para
+    # aceptar tambien primers con una delecion, igual que el adaptador
+    # anclado anterior (con min_overlap = longitud completa se perdian
+    # 0.4-0.6 % de contigs que el anclado si aceptaba).
+    # Hasta v1.2.2 se anclaba ('^F...Rrc$'), lo que descartaba toda lectura
+    # con bases antes del primer forward o despues del reverse: bibliotecas
+    # con espaciador (p. ej. NNNN) o primers escalonados (phased, 0-7 nt)
+    # perdian 87-100 % de las lecturas (validacion independiente, nov 2026).
+    # Sin anclar, cutadapt quita tambien lo que haya antes/despues del primer.
+    min_ov_f = len(primer_f) - len(primer_f) // 10
+    min_ov_r = len(primer_r_rc) - len(primer_r_rc) // 10
+    linked_adapter = (
+        f'{primer_f};required;min_overlap={min_ov_f}'
+        f'...{primer_r_rc};required;min_overlap={min_ov_r}'
+    )
 
     cmd = [
         'cutadapt',
@@ -82,6 +93,15 @@ def trim_primers_cutadapt(
         return None, f'cutadapt failed: {result.stderr}', 0
 
     surviving_ids = set(_read_fasta_ids(output_fasta))
+
+    total_ids = len(_read_fasta_ids(fasta_path))
+    if total_ids and len(surviving_ids) / total_ids < 0.5:
+        print(
+            f"   WARNING: only {len(surviving_ids):,} of {total_ids:,} contigs "
+            f"({100 * len(surviving_ids) / total_ids:.1f} %) contain both primers. "
+            "Check that the primer sequences match the library, or leave them "
+            "empty if primers were already removed."
+        )
 
     header, rows = _read_count_table(count_table_path)
     with open(output_count, 'w') as out:

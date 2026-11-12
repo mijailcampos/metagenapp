@@ -1,2 +1,2 @@
-MetagenApp v1.2.2
-Date: 2026-11-10
+MetagenApp v1.2.3
+Date: 2026-11-12

@@ -83,7 +83,7 @@ Summary statistics and PCoA coordinates are in [`results_v2/tables/`](results_v2
 - Custom classifier (`naive-v2`) — Wang-style bootstrap k-mer confidence scoring
 - SILVA 138.2 NR99 reference files on Zenodo ([10.5281/zenodo.23326733](https://doi.org/10.5281/zenodo.23326733)); legacy SILVA 138 model also available
 - Alignment fallback — EDLib pairwise alignment for borderline sequences (94% threshold, Yarza et al. 2014)
-- Optional primer trimming (`--primer-f` / `--primer-r`, cutadapt)
+- Optional primer trimming (`--primer-f` / `--primer-r`, cutadapt). Since v1.2.3 the primers are searched anywhere in the contig (not anchored), so libraries with spacers or staggered (phased) primers are trimmed correctly; a warning is printed when fewer than 50% of the contigs contain both primers
 - Accepts `.fastq`/`.fq` input, plain or gzipped
 - 26-step pipeline — merge → filter → cluster → classify → OTU table
 - Multiple execution modes: `student`, `premium`, `turbo`, `ref`, `qa`
