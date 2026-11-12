@@ -9,8 +9,11 @@ repository-code: https://github.com/mijailcampos/metagenapp
 license: MIT
 version: "1.2.3"
 date-released: 2026-11-12
-doi: 10.5281/zenodo.23325860
+doi: 10.5281/zenodo.24170815
 identifiers:
+  - type: doi
+    value: 10.5281/zenodo.24170815
+    description: MetagenApp v1.2.3 (primer trimming no longer anchored)
   - type: doi
     value: 10.5281/zenodo.24120797
     description: MetagenApp v1.2.2 (genus column without family names)
