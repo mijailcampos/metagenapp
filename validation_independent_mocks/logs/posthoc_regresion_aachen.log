@@ -1,0 +1,150 @@
+
+══════════════════════════════════════════════════════
+  MetagenApp — metabarcoding pipeline
+══════════════════════════════════════════════════════
+  Mode:       ref
+  Marker:     16S
+  Classifier: wang
+  Threads:    16
+  Input:      /data/mock_community_20261001/input/aachen
+  Output:     /data/validation_independent_mocks_20261111/posthoc_primerfix/regresion_aachen
+══════════════════════════════════════════════════════
+
+
+── 00_Generate_files
+   ✅ 0.0s
+
+── 01_Assemble_contigs
+
+──────────────────────────── ENSAMBLADO DE CONTIGS ─────────────────────────────
+
+  Zymo8nM_S1_L001 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5/5 70,764 / 82,118 (86.2%)
+                                                
+ Muestra              Pares   Mergeados       % 
+ ────────────────────────────────────────────── 
+ Zymo05nM_S5_L001     5,162       4,426   85.7% 
+ Zymo1nM_S4_L001      3,552       3,025   85.2% 
+ Zymo2nM_S3_L001     14,101      11,994   85.1% 
+ Zymo4nM_S2_L001     23,724      20,234   85.3% 
+ Zymo8nM_S1_L001     82,118      70,764   86.2% 
+                                                
+ Total              128,657     110,443   85.8% 
+                                                
+
+
+  ✔ 41,897 contigs únicos  · 5 muestras
+
+   ✅ 3.7s
+
+── 01b_Trim_primers
+   41,672 contigs with both primers detected and trimmed
+   ✅ 0.5s
+
+── 02_Filter_contigs
+   41,631 contigs retained
+   ✅ 2.3s
+
+── 03_Unique_contigs
+   19,772 unique sequences
+   ✅ 1.6s
+
+── 03b_Chimera_denovo
+   2,380 of 19,772 unique sequences chimeric; 5,303 of 110,174 reads removed (104,871 retained)
+   ✅ 43.7s
+
+── 04_Alignment_vsearch
+   ✅ 78.7s
+
+── 09_Trim_vsearch
+   ✅ 1.1s
+
+── 10_Clustering_97
+   OTUs from 4,635 uniques with >= 2 reads (92,114 reads); 12,626 of 12,757 rarer uniques mapped back at 97 % (+12,626 reads, 131 reads discarded)
+   ✅ 1.2s
+
+── 11_Extract_Centroids
+   all centroids extracted
+   ✅ 0.0s
+  ⚠️  131 sequences not found in UC file — skipped
+   18 centroids, 104,740 reads aggregated
+
+── 12_MAFFT_Alignment
+   VSEARCH mapping centroids → reference
+✅ VSEARCH mapping: 18 centroids with hit in 0.45 min -> /data/validation_independent_mocks_20261111/posthoc_primerfix/regresion_aachen/centroids_vs_reference.edlib.tsv
+   ✅ 27.0s
+
+── 20_TaxonomicClassification
+🧬 Wang classifier activated (k=8, bootstrap 1/8 x 100, confidence 0.80)
+   Model: /data/databases/metagenapp_refs/16S_silva1382_full/wang_silva1382_full_species.npz
+[wang] 18 sequences classified in 4 s (confidence 0.80)
+[wang] deepest rank reached: 5 ranks 1, 6 ranks 17
+[wang] confidences -> /data/validation_independent_mocks_20261111/posthoc_primerfix/regresion_aachen/classification.wang_confidence.taxonomy
+   ✅ 4.3s
+
+── 21_RemoveLineages
+   ✅ 0.0s
+
+── 22_TaxonomicSummary
+
+── 22_TaxonomicSummary
+   ✅ 0.0s
+
+── 24_Final_ASV_Table
+
+── 24_Final_ASV_Table
+   ✅ 0.0s
+
+── 25_Assign_Taxonomy_to_ASVs
+
+── 25_Assign_Taxonomy_to_ASVs
+   ✅ 0.0s
+
+── 26_ASV_Summary_Table
+
+── 26_ASV_Summary_Table
+   ✅ 0.0s
+
+║[95m▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓▓[0m║
+║  [96m██████╗  ██████╗ ███╗  ██╗███████╗ ██╗[0m            ║
+║  [96m██╔══██╗██╔═══██╗████╗ ██║██╔════╝ ██║[0m            ║
+║  [96m██║  ██║██║   ██║██╔██╗██║█████╗   ██║[0m            ║
+║  [96m██║  ██║██║   ██║██║╚████║██╔══╝   ╚═╝[0m            ║
+║  [96m██████╔╝╚██████╔╝██║ ╚███║███████╗ ██╗[0m            ║
+║  [96m╚═════╝  ╚═════╝ ╚═╝  ╚══╝╚══════╝ ╚═╝[0m            ║
+║[95m▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓▓[0m║
+
+  ── RESULTADOS ──────────────────────────────────────
+  [92m📂 Carpeta      /data/validation_independent_mocks_20261111/posthoc_primerfix/regresion_aachen[0m
+  📊 Tabla ASV    574 B  ·  18 OTUs  ×  5 muestras
+  🏷  Taxonomía    1.7 KB
+  📋 Resumen      4.0 KB
+
+  ── MÉTRICAS ─────────────────────────────────────────
+  ⏱  Tiempo total  [94m2m 46s[0m
+  🧠 RAM máxima    1373 MB  (1.34 GB)
+  💾 Carpeta       243.4 MB
+  ─────────────────────────────────────────────────────
+
+	Command being timed: "/data/envs/metagenapp_env_v2/bin/metagenapp -i /data/mock_community_20261001/input/aachen -o /data/validation_independent_mocks_20261111/posthoc_primerfix/regresion_aachen --mode ref --marker 16S --classifier wang --primer-f CCTACGGGNGGCWGCAG --primer-r GACTACHVGGGTATCTAATCC --min-length 400 --max-length 440 --max-ambigs 0 --max-poly 8 -t 16"
+	User time (seconds): 1206.54
+	System time (seconds): 14.64
+	Percent of CPU this job got: 732%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 2:46.69
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2425336
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 3
+	Minor (reclaiming a frame) page faults: 4362805
+	Voluntary context switches: 26204
+	Involuntary context switches: 2198
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 479952
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

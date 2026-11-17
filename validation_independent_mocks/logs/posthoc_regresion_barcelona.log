@@ -1,0 +1,157 @@
+
+══════════════════════════════════════════════════════
+  MetagenApp — metabarcoding pipeline
+══════════════════════════════════════════════════════
+  Mode:       ref
+  Marker:     16S
+  Classifier: wang
+  Threads:    16
+  Input:      /data/mock_community_20261001/input/barcelona
+  Output:     /data/validation_independent_mocks_20261111/posthoc_primerfix/regresion_barcelona
+══════════════════════════════════════════════════════
+
+
+── 00_Generate_files
+   ✅ 0.0s
+
+── 01_Assemble_contigs
+
+──────────────────────────── ENSAMBLADO DE CONTIGS ─────────────────────────────
+
+  HM783Dr6_S12_L001 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12/12 20,665 / 46,979 (44.0%)
+                                                 
+ Muestra               Pares   Mergeados       % 
+ ─────────────────────────────────────────────── 
+ HM782Dr1_S1_L001     12,766       7,659   60.0% 
+ HM782Dr2_S2_L001     38,554      12,955   33.6% 
+ HM782Dr3_S3_L001     46,608      18,024   38.7% 
+ HM782Dr4_S4_L001     31,448      14,159   45.0% 
+ HM782Dr5_S5_L001     35,980      17,982   50.0% 
+ HM782Dr6_S6_L001     39,838      20,379   51.2% 
+ HM783Dr1_S7_L001     55,938      33,010   59.0% 
+ HM783Dr2_S8_L001     33,463      11,086   33.1% 
+ HM783Dr3_S9_L001     29,858      11,257   37.7% 
+ HM783Dr4_S10_L001    22,612      11,880   52.5% 
+ HM783Dr5_S11_L001    22,919      11,613   50.7% 
+ HM783Dr6_S12_L001    46,979      20,665   44.0% 
+                                                 
+ Total               416,963     190,669   45.7% 
+                                                 
+
+
+  ✔ 79,885 contigs únicos  · 12 muestras
+
+   ✅ 10.7s
+
+── 01b_Trim_primers
+   79,112 contigs with both primers detected and trimmed
+   ✅ 0.7s
+
+── 02_Filter_contigs
+   79,106 contigs retained
+   ✅ 4.6s
+
+── 03_Unique_contigs
+   40,558 unique sequences
+   ✅ 3.4s
+
+── 03b_Chimera_denovo
+   1,409 of 40,558 unique sequences chimeric; 1,713 of 189,879 reads removed (188,166 retained)
+   ✅ 105.8s
+
+── 04_Alignment_vsearch
+   ✅ 129.3s
+
+── 09_Trim_vsearch
+   ✅ 2.9s
+
+── 10_Clustering_97
+   OTUs from 7,672 uniques with >= 2 reads (156,689 reads); 31,081 of 31,477 rarer uniques mapped back at 97 % (+31,081 reads, 396 reads discarded)
+   ✅ 2.5s
+
+── 11_Extract_Centroids
+   all centroids extracted
+   ✅ 0.0s
+  ⚠️  396 sequences not found in UC file — skipped
+   30 centroids, 187,770 reads aggregated
+
+── 12_MAFFT_Alignment
+   VSEARCH mapping centroids → reference
+✅ VSEARCH mapping: 30 centroids with hit in 0.45 min -> /data/validation_independent_mocks_20261111/posthoc_primerfix/regresion_barcelona/centroids_vs_reference.edlib.tsv
+   ✅ 26.8s
+
+── 20_TaxonomicClassification
+🧬 Wang classifier activated (k=8, bootstrap 1/8 x 100, confidence 0.80)
+   Model: /data/databases/metagenapp_refs/16S_silva1382_full/wang_silva1382_full_species.npz
+[wang] 30 sequences classified in 6 s (confidence 0.80)
+[wang] deepest rank reached: 6 ranks 30
+[wang] confidences -> /data/validation_independent_mocks_20261111/posthoc_primerfix/regresion_barcelona/classification.wang_confidence.taxonomy
+   ✅ 6.1s
+
+── 21_RemoveLineages
+   ✅ 0.0s
+
+── 22_TaxonomicSummary
+
+── 22_TaxonomicSummary
+   ✅ 0.0s
+
+── 24_Final_ASV_Table
+
+── 24_Final_ASV_Table
+   ✅ 0.0s
+
+── 25_Assign_Taxonomy_to_ASVs
+
+── 25_Assign_Taxonomy_to_ASVs
+   ✅ 0.0s
+
+── 26_ASV_Summary_Table
+
+── 26_ASV_Summary_Table
+   ✅ 0.0s
+
+║[95m▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓▓[0m║
+║  [96m██████╗  ██████╗ ███╗  ██╗███████╗ ██╗[0m            ║
+║  [96m██╔══██╗██╔═══██╗████╗ ██║██╔════╝ ██║[0m            ║
+║  [96m██║  ██║██║   ██║██╔██╗██║█████╗   ██║[0m            ║
+║  [96m██║  ██║██║   ██║██║╚████║██╔══╝   ╚═╝[0m            ║
+║  [96m██████╔╝╚██████╔╝██║ ╚███║███████╗ ██╗[0m            ║
+║  [96m╚═════╝  ╚═════╝ ╚═╝  ╚══╝╚══════╝ ╚═╝[0m            ║
+║[95m▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓▓[0m║
+
+  ── RESULTADOS ──────────────────────────────────────
+  [92m📂 Carpeta      /data/validation_independent_mocks_20261111/posthoc_primerfix/regresion_barcelona[0m
+  📊 Tabla ASV    1.7 KB  ·  30 OTUs  ×  12 muestras
+  🏷  Taxonomía    2.7 KB
+  📋 Resumen      7.3 KB
+
+  ── MÉTRICAS ─────────────────────────────────────────
+  ⏱  Tiempo total  [94m4m 54s[0m
+  🧠 RAM máxima    1394 MB  (1.36 GB)
+  💾 Carpeta       479.5 MB
+  ─────────────────────────────────────────────────────
+
+	Command being timed: "/data/envs/metagenapp_env_v2/bin/metagenapp -i /data/mock_community_20261001/input/barcelona -o /data/validation_independent_mocks_20261111/posthoc_primerfix/regresion_barcelona --mode ref --marker 16S --classifier wang --primer-f CCTACGGGNGGCWGCAG --primer-r GACTACHVGGGTATCTAATCC --min-length 400 --max-length 440 --max-ambigs 0 --max-poly 8 -t 16"
+	User time (seconds): 2109.28
+	System time (seconds): 17.91
+	Percent of CPU this job got: 720%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 4:55.43
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2481520
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 12
+	Minor (reclaiming a frame) page faults: 4664015
+	Voluntary context switches: 31625
+	Involuntary context switches: 3810
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 943376
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

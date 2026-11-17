@@ -1,0 +1,155 @@
+
+══════════════════════════════════════════════════════
+  MetagenApp — metabarcoding pipeline
+══════════════════════════════════════════════════════
+  Mode:       ref
+  Marker:     16S
+  Classifier: wang
+  Threads:    16
+  Input:      /data/validation_independent_mocks_20261111/input
+  Output:     /data/validation_independent_mocks_20261111/posthoc_primerfix/validacion_ADE
+══════════════════════════════════════════════════════
+
+
+── 00_Generate_files
+   ✅ 0.0s
+
+── 01_Assemble_contigs
+
+──────────────────────────── ENSAMBLADO DE CONTIGS ─────────────────────────────
+
+  E_mock3_S9_L001 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10/10 185,767 / 240,033 (77.4%)
+                                                  
+ Muestra                Pares   Mergeados       % 
+ ──────────────────────────────────────────────── 
+ A_ZY1_S1_L001        111,425      74,047   66.5% 
+ A_ZY2_S2_L001        117,880      78,745   66.8% 
+ D_mock4_S3_L001      280,420     176,001   62.8% 
+ D_mock5_S4_L001      350,912     176,096   50.2% 
+ D_mock6_S5_L001      243,539     190,031   78.0% 
+ D_mock7_S6_L001      148,658     110,212   74.1% 
+ D_mock8_S7_L001      143,297      88,338   61.6% 
+ E_mock1_S8_L001      221,852     171,503   77.3% 
+ E_mock2_S10_L001     362,606     296,918   81.9% 
+ E_mock3_S9_L001      240,033     185,767   77.4% 
+                                                  
+ Total              2,220,622   1,547,658   69.7% 
+                                                  
+
+
+  ✔ 1,220,613 contigs únicos  · 10 muestras
+
+   ✅ 76.8s
+
+── 01b_Trim_primers
+   1,215,692 contigs with both primers detected and trimmed
+   ✅ 5.8s
+
+── 02_Filter_contigs
+   1,215,369 contigs retained
+   ✅ 70.4s
+
+── 03_Unique_contigs
+   364,316 unique sequences
+   ✅ 45.6s
+
+── 03b_Chimera_denovo
+   237,187 of 364,316 unique sequences chimeric; 670,312 of 1,542,398 reads removed (872,086 retained)
+   ✅ 2050.7s
+
+── 04_Alignment_vsearch
+   ✅ 404.3s
+
+── 09_Trim_vsearch
+   ✅ 8.0s
+
+── 10_Clustering_97
+   OTUs from 24,414 uniques with >= 2 reads (769,371 reads); 98,837 of 102,715 rarer uniques mapped back at 97 % (+98,837 reads, 3,878 reads discarded)
+   ✅ 7.6s
+
+── 11_Extract_Centroids
+   all centroids extracted
+   ✅ 0.0s
+  ⚠️  3878 sequences not found in UC file — skipped
+   314 centroids, 868,208 reads aggregated
+
+── 12_MAFFT_Alignment
+   VSEARCH mapping centroids → reference
+✅ VSEARCH mapping: 314 centroids with hit in 0.46 min -> /data/validation_independent_mocks_20261111/posthoc_primerfix/validacion_ADE/centroids_vs_reference.edlib.tsv
+   ✅ 27.6s
+
+── 20_TaxonomicClassification
+🧬 Wang classifier activated (k=8, bootstrap 1/8 x 100, confidence 0.80)
+   Model: /data/databases/metagenapp_refs/16S_silva1382_full/wang_silva1382_full_species.npz
+[wang] 314 sequences classified in 12 s (confidence 0.80)
+[wang] deepest rank reached: 1 ranks 1, 2 ranks 2, 3 ranks 40, 4 ranks 28, 5 ranks 66, 6 ranks 177
+[wang] confidences -> /data/validation_independent_mocks_20261111/posthoc_primerfix/validacion_ADE/classification.wang_confidence.taxonomy
+   ✅ 12.1s
+
+── 21_RemoveLineages
+   ✅ 0.0s
+
+── 22_TaxonomicSummary
+
+── 22_TaxonomicSummary
+   ✅ 0.0s
+
+── 24_Final_ASV_Table
+
+── 24_Final_ASV_Table
+   ✅ 0.0s
+
+── 25_Assign_Taxonomy_to_ASVs
+
+── 25_Assign_Taxonomy_to_ASVs
+   ✅ 0.0s
+
+── 26_ASV_Summary_Table
+
+── 26_ASV_Summary_Table
+   ✅ 0.0s
+
+║[95m▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓▓[0m║
+║  [96m██████╗  ██████╗ ███╗  ██╗███████╗ ██╗[0m            ║
+║  [96m██╔══██╗██╔═══██╗████╗ ██║██╔════╝ ██║[0m            ║
+║  [96m██║  ██║██║   ██║██╔██╗██║█████╗   ██║[0m            ║
+║  [96m██║  ██║██║   ██║██║╚████║██╔══╝   ╚═╝[0m            ║
+║  [96m██████╔╝╚██████╔╝██║ ╚███║███████╗ ██╗[0m            ║
+║  [96m╚═════╝  ╚═════╝ ╚═╝  ╚══╝╚══════╝ ╚═╝[0m            ║
+║[95m▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▓▓[0m║
+
+  ── RESULTADOS ──────────────────────────────────────
+  [92m📂 Carpeta      /data/validation_independent_mocks_20261111/posthoc_primerfix/validacion_ADE[0m
+  📊 Tabla ASV    11.5 KB  ·  314 OTUs  ×  10 muestras
+  🏷  Taxonomía    24.6 KB
+  📋 Resumen      65.0 KB
+
+  ── MÉTRICAS ─────────────────────────────────────────
+  ⏱  Tiempo total  [94m45m 10s[0m
+  🧠 RAM máxima    2605 MB  (2.54 GB)
+  💾 Carpeta       4.14 GB
+  ─────────────────────────────────────────────────────
+
+	Command being timed: "/data/envs/metagenapp_env_v2/bin/metagenapp -i /data/validation_independent_mocks_20261111/input -o /data/validation_independent_mocks_20261111/posthoc_primerfix/validacion_ADE --mode ref --marker 16S --classifier wang --primer-f CCTACGGGNGGCWGCAG --primer-r GACTACHVGGGTATCTAATCC --min-length 400 --max-length 440 --max-ambigs 0 --max-poly 8 -t 16"
+	User time (seconds): 8797.54
+	System time (seconds): 45.25
+	Percent of CPU this job got: 326%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 45:11.50
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2667096
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 67
+	Minor (reclaiming a frame) page faults: 11550096
+	Voluntary context switches: 234774
+	Involuntary context switches: 25502
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 8115816
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

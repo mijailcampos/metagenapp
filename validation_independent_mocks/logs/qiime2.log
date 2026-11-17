@@ -1,0 +1,800 @@
+[Wed Nov 11 20:45:50 UTC 2026] 1/5 import manifest
+Imported /data/validation_independent_mocks_20261111/qiime2_manifest.tsv as PairedEndFastqManifestPhred33V2 to /data/validation_independent_mocks_20261111/outputs/qiime2/demux.qza
+[Wed Nov 11 20:46:31 UTC 2026] 2/5 cutadapt trim-paired (remove 341F/805R)
+This is cutadapt 4.9 with Python 3.10.14
+Command line parameters: --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/A_ZY1_0_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/A_ZY1_10_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/A_ZY1_0_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/A_ZY1_10_L001_R2_001.fastq.gz
+Processing paired-end reads on 16 cores ...
+Finished in 0.907 s (8.136 µs/read; 7.37 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:            111,425
+  Read 1 with adapter:                 110,792 (99.4%)
+  Read 2 with adapter:                 108,806 (97.6%)
+
+== Read fate breakdown ==
+Pairs that were too short:                   0 (0.0%)
+Pairs written (passing filters):       108,194 (97.1%)
+
+Total basepairs processed:    67,300,700 bp
+  Read 1:    36,324,550 bp
+  Read 2:    30,976,150 bp
+Quality-trimmed:                       0 bp (0.0%)
+  Read 1:             0 bp
+  Read 2:             0 bp
+Total written (filtered):     60,649,777 bp (90.1%)
+  Read 1:    33,113,692 bp
+  Read 2:    27,536,085 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: CCTACGGGNGGCWGCAG; Type: regular 5'; Length: 17; Trimmed: 110792 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-16 bp: 1
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	13	1741.0	0	13
+14	4	0.0	1	4
+15	14	0.0	1	8 6
+16	129	0.0	1	32 97
+17	27767	0.0	1	27376 391
+18	187	0.0	1	49 138
+19	30186	0.0	1	29618 568
+20	243	0.0	1	101 142
+21	24225	0.0	1	23684 541
+22	332	0.0	1	185 147
+23	27656	0.0	1	26983 673
+24	36	0.0	1	10 26
+
+
+=== Second read: Adapter 2 ===
+
+Sequence: GACTACHVGGGTATCTAATCC; Type: regular 5'; Length: 21; Trimmed: 108806 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-19 bp: 1; 20-21 bp: 2
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	59	1741.0	0	59
+5	1	108.8	0	1
+10	1	0.1	1	1
+12	1	0.0	1	1
+13	4	0.0	1	3 1
+14	10	0.0	1	8 2
+15	8	0.0	1	7 1
+16	6	0.0	1	2 4
+17	28	0.0	1	15 13
+18	19	0.0	1	5 13 1
+19	34	0.0	1	11 5 18
+20	301	0.0	2	40 242 19
+21	31182	0.0	2	29516 1314 352
+22	27067	0.0	2	25792 956 319
+23	424	0.0	2	107 288 29
+24	25449	0.0	2	24116 1005 328
+25	52	0.0	2	13 35 4
+26	110	0.0	2	64 18 28
+27	360	0.0	2	152 191 17
+28	23630	0.0	2	22397 930 303
+29	60	0.0	2	22 36 2
+This is cutadapt 4.9 with Python 3.10.14
+Command line parameters: --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/A_ZY2_1_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/A_ZY2_11_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/A_ZY2_1_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/A_ZY2_11_L001_R2_001.fastq.gz
+Processing paired-end reads on 16 cores ...
+Finished in 1.115 s (9.456 µs/read; 6.35 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:            117,880
+  Read 1 with adapter:                 117,210 (99.4%)
+  Read 2 with adapter:                 115,268 (97.8%)
+
+== Read fate breakdown ==
+Pairs that were too short:                   0 (0.0%)
+Pairs written (passing filters):       114,619 (97.2%)
+
+Total basepairs processed:    71,199,520 bp
+  Read 1:    38,428,880 bp
+  Read 2:    32,770,640 bp
+Quality-trimmed:                       0 bp (0.0%)
+  Read 1:             0 bp
+  Read 2:             0 bp
+Total written (filtered):     64,253,203 bp (90.2%)
+  Read 1:    35,083,096 bp
+  Read 2:    29,170,107 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: CCTACGGGNGGCWGCAG; Type: regular 5'; Length: 17; Trimmed: 117210 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-16 bp: 1
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	13	1841.9	0	13
+8	2	1.8	0	2
+11	1	0.0	1	1
+12	1	0.0	1	1
+13	2	0.0	1	1 1
+14	8	0.0	1	5 3
+15	11	0.0	1	10 1
+16	130	0.0	1	33 97
+17	30182	0.0	1	29709 473
+18	214	0.0	1	48 166
+19	31490	0.0	1	30941 549
+20	250	0.0	1	121 129
+21	25493	0.0	1	24970 523
+22	319	0.0	1	170 149
+23	29069	0.0	1	28425 644
+24	25	0.0	1	13 12
+
+
+=== Second read: Adapter 2 ===
+
+Sequence: GACTACHVGGGTATCTAATCC; Type: regular 5'; Length: 21; Trimmed: 115268 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-19 bp: 1; 20-21 bp: 2
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	64	1841.9	0	64
+4	1	460.5	0	1
+5	2	115.1	0	2
+8	2	1.8	0	2
+9	1	0.4	0	1
+11	3	0.0	1	1 2
+12	1	0.0	1	0 1
+13	10	0.0	1	7 3
+14	10	0.0	1	6 4
+15	6	0.0	1	3 3
+16	6	0.0	1	4 2
+17	31	0.0	1	23 8
+18	14	0.0	1	7 7
+19	34	0.0	1	12 6 16
+20	326	0.0	2	49 258 19
+21	32185	0.0	2	30487 1301 397
+22	29697	0.0	2	28309 1018 370
+23	455	0.0	2	103 335 17
+24	26546	0.0	2	25113 1057 376
+25	47	0.0	2	5 38 4
+26	87	0.0	2	47 17 23
+27	398	0.0	2	172 200 26
+28	25272	0.0	2	24003 928 341
+29	69	0.0	2	17 47 5
+33	1	0.0	2	1
+This is cutadapt 4.9 with Python 3.10.14
+Command line parameters: --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock4_2_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock4_12_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock4_2_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock4_12_L001_R2_001.fastq.gz
+Processing paired-end reads on 16 cores ...
+Finished in 1.761 s (6.281 µs/read; 9.55 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:            280,420
+  Read 1 with adapter:                 279,788 (99.8%)
+  Read 2 with adapter:                 279,958 (99.8%)
+
+== Read fate breakdown ==
+Pairs that were too short:                   0 (0.0%)
+Pairs written (passing filters):       279,416 (99.6%)
+
+Total basepairs processed:   168,812,840 bp
+  Read 1:    84,406,420 bp
+  Read 2:    84,406,420 bp
+Quality-trimmed:                       0 bp (0.0%)
+  Read 1:             0 bp
+  Read 2:             0 bp
+Total written (filtered):    156,479,985 bp (92.7%)
+  Read 1:    78,241,372 bp
+  Read 2:    78,238,613 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: CCTACGGGNGGCWGCAG; Type: regular 5'; Length: 17; Trimmed: 279788 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-16 bp: 1
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	4	4381.6	0	4
+4	3	1095.4	0	3
+11	1	0.1	1	1
+13	1	0.0	1	0 1
+14	7	0.0	1	5 2
+15	2	0.0	1	2
+16	2	0.0	1	0 2
+17	11	0.0	1	9 2
+18	30	0.0	1	24 6
+19	102	0.0	1	64 38
+20	4597	0.0	1	1562 3035
+21	274778	0.0	1	272860 1918
+22	250	0.0	1	85 165
+
+
+=== Second read: Adapter 2 ===
+
+Sequence: GACTACHVGGGTATCTAATCC; Type: regular 5'; Length: 21; Trimmed: 279958 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-19 bp: 1; 20-21 bp: 2
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	9	4381.6	0	9
+17	4	0.0	1	3 1
+18	9	0.0	1	3 6
+19	44	0.0	1	1 5 38
+20	2227	0.0	2	130 1992 105
+21	277474	0.0	2	274423 2763 288
+22	190	0.0	2	17 162 11
+53	1	0.0	2	1
+This is cutadapt 4.9 with Python 3.10.14
+Command line parameters: --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock5_3_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock5_13_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock5_3_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock5_13_L001_R2_001.fastq.gz
+Processing paired-end reads on 16 cores ...
+Finished in 2.032 s (5.790 µs/read; 10.36 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:            350,912
+  Read 1 with adapter:                 350,585 (99.9%)
+  Read 2 with adapter:                 350,323 (99.8%)
+
+== Read fate breakdown ==
+Pairs that were too short:                   0 (0.0%)
+Pairs written (passing filters):       350,018 (99.7%)
+
+Total basepairs processed:   211,249,024 bp
+  Read 1:   105,624,512 bp
+  Read 2:   105,624,512 bp
+Quality-trimmed:                       0 bp (0.0%)
+  Read 1:             0 bp
+  Read 2:             0 bp
+Total written (filtered):    196,019,076 bp (92.8%)
+  Read 1:    98,011,133 bp
+  Read 2:    98,007,943 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: CCTACGGGNGGCWGCAG; Type: regular 5'; Length: 17; Trimmed: 350585 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-16 bp: 1
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	7	5483.0	0	7
+4	1	1370.8	0	1
+13	2	0.0	1	0 2
+14	6	0.0	1	5 1
+15	4	0.0	1	4
+16	3	0.0	1	3
+17	9	0.0	1	8 1
+18	24	0.0	1	18 6
+19	139	0.0	1	80 59
+20	5835	0.0	1	2100 3735
+21	344208	0.0	1	341770 2438
+22	345	0.0	1	137 208
+23	1	0.0	1	0 1
+34	1	0.0	1	1
+
+
+=== Second read: Adapter 2 ===
+
+Sequence: GACTACHVGGGTATCTAATCC; Type: regular 5'; Length: 21; Trimmed: 350323 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-19 bp: 1; 20-21 bp: 2
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	22	5483.0	0	22
+6	1	85.7	0	1
+17	3	0.0	1	2 1
+18	17	0.0	1	0 17
+19	74	0.0	1	2 9 63
+20	2885	0.0	2	170 2646 69
+21	347064	0.0	2	341845 4810 409
+22	256	0.0	2	24 217 15
+42	1	0.0	2	1
+This is cutadapt 4.9 with Python 3.10.14
+Command line parameters: --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock6_4_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock6_14_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock6_4_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock6_14_L001_R2_001.fastq.gz
+Processing paired-end reads on 16 cores ...
+Finished in 1.441 s (5.916 µs/read; 10.14 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:            243,539
+  Read 1 with adapter:                 243,009 (99.8%)
+  Read 2 with adapter:                 242,177 (99.4%)
+
+== Read fate breakdown ==
+Pairs that were too short:                   0 (0.0%)
+Pairs written (passing filters):       241,658 (99.2%)
+
+Total basepairs processed:   146,610,478 bp
+  Read 1:    73,305,239 bp
+  Read 2:    73,305,239 bp
+Quality-trimmed:                       0 bp (0.0%)
+  Read 1:             0 bp
+  Read 2:             0 bp
+Total written (filtered):    135,334,669 bp (92.3%)
+  Read 1:    67,668,527 bp
+  Read 2:    67,666,142 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: CCTACGGGNGGCWGCAG; Type: regular 5'; Length: 17; Trimmed: 243009 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-16 bp: 1
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	8	3805.3	0	8
+4	1	951.3	0	1
+13	1	0.0	1	0 1
+14	4	0.0	1	4
+15	5	0.0	1	2 3
+16	3	0.0	1	2 1
+17	8	0.0	1	6 2
+18	18	0.0	1	12 6
+19	109	0.0	1	62 47
+20	4030	0.0	1	1382 2648
+21	238569	0.0	1	236896 1673
+22	252	0.0	1	103 149
+23	1	0.0	1	1
+
+
+=== Second read: Adapter 2 ===
+
+Sequence: GACTACHVGGGTATCTAATCC; Type: regular 5'; Length: 21; Trimmed: 242177 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-19 bp: 1; 20-21 bp: 2
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	2	3805.3	0	2
+6	1	59.5	0	1
+16	2	0.0	1	0 2
+18	7	0.0	1	0 7
+19	50	0.0	1	3 3 44
+20	1914	0.0	2	102 1769 43
+21	240036	0.0	2	237058 2626 352
+22	164	0.0	2	27 134 3
+50	1	0.0	2	0 1
+This is cutadapt 4.9 with Python 3.10.14
+Command line parameters: --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock7_5_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock7_15_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock7_5_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock7_15_L001_R2_001.fastq.gz
+Processing paired-end reads on 16 cores ...
+Finished in 1.198 s (8.058 µs/read; 7.45 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:            148,658
+  Read 1 with adapter:                 148,366 (99.8%)
+  Read 2 with adapter:                 148,382 (99.8%)
+
+== Read fate breakdown ==
+Pairs that were too short:                   0 (0.0%)
+Pairs written (passing filters):       148,092 (99.6%)
+
+Total basepairs processed:    89,492,116 bp
+  Read 1:    44,746,058 bp
+  Read 2:    44,746,058 bp
+Quality-trimmed:                       0 bp (0.0%)
+  Read 1:             0 bp
+  Read 2:             0 bp
+Total written (filtered):     82,936,368 bp (92.7%)
+  Read 1:    41,469,068 bp
+  Read 2:    41,467,300 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: CCTACGGGNGGCWGCAG; Type: regular 5'; Length: 17; Trimmed: 148366 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-16 bp: 1
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	3	2322.8	0	3
+4	1	580.7	0	1
+14	16	0.0	1	14 2
+15	7	0.0	1	4 3
+16	12	0.0	1	6 6
+17	28	0.0	1	24 4
+18	51	0.0	1	47 4
+19	117	0.0	1	79 38
+20	2718	0.0	1	874 1844
+21	145222	0.0	1	144046 1176
+22	191	0.0	1	72 119
+
+
+=== Second read: Adapter 2 ===
+
+Sequence: GACTACHVGGGTATCTAATCC; Type: regular 5'; Length: 21; Trimmed: 148382 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-19 bp: 1; 20-21 bp: 2
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	11	2322.8	0	11
+17	2	0.0	1	1 1
+18	4	0.0	1	2 2
+19	37	0.0	1	1 0 36
+20	1346	0.0	2	89 1210 47
+21	146887	0.0	2	145671 1117 99
+22	95	0.0	2	17 74 4
+This is cutadapt 4.9 with Python 3.10.14
+Command line parameters: --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock8_6_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock8_16_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock8_6_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock8_16_L001_R2_001.fastq.gz
+Processing paired-end reads on 16 cores ...
+Finished in 1.179 s (8.229 µs/read; 7.29 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:            143,297
+  Read 1 with adapter:                 143,060 (99.8%)
+  Read 2 with adapter:                 143,035 (99.8%)
+
+== Read fate breakdown ==
+Pairs that were too short:                   0 (0.0%)
+Pairs written (passing filters):       142,800 (99.7%)
+
+Total basepairs processed:    86,264,794 bp
+  Read 1:    43,132,397 bp
+  Read 2:    43,132,397 bp
+Quality-trimmed:                       0 bp (0.0%)
+  Read 1:             0 bp
+  Read 2:             0 bp
+Total written (filtered):     79,972,604 bp (92.7%)
+  Read 1:    39,987,041 bp
+  Read 2:    39,985,563 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: CCTACGGGNGGCWGCAG; Type: regular 5'; Length: 17; Trimmed: 143060 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-16 bp: 1
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	5	2239.0	0	5
+4	1	559.8	0	1
+9	1	0.5	0	1
+12	1	0.0	1	1
+13	1	0.0	1	0 1
+14	6	0.0	1	6
+15	7	0.0	1	3 4
+16	8	0.0	1	7 1
+17	24	0.0	1	22 2
+18	55	0.0	1	49 6
+19	102	0.0	1	66 36
+20	2468	0.0	1	748 1720
+21	140234	0.0	1	139017 1217
+22	147	0.0	1	57 90
+
+
+=== Second read: Adapter 2 ===
+
+Sequence: GACTACHVGGGTATCTAATCC; Type: regular 5'; Length: 21; Trimmed: 143035 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-19 bp: 1; 20-21 bp: 2
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	14	2239.0	0	14
+13	1	0.0	1	1
+17	2	0.0	1	2
+18	8	0.0	1	1 7
+19	44	0.0	1	3 1 40
+20	1285	0.0	2	79 1120 86
+21	141579	0.0	2	140438 1069 72
+22	102	0.0	2	6 92 4
+This is cutadapt 4.9 with Python 3.10.14
+Command line parameters: --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/E_mock1_7_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/E_mock1_17_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/E_mock1_7_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/E_mock1_17_L001_R2_001.fastq.gz
+Processing paired-end reads on 16 cores ...
+Finished in 1.257 s (5.664 µs/read; 10.59 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:            221,852
+  Read 1 with adapter:                 221,528 (99.9%)
+  Read 2 with adapter:                 193,038 (87.0%)
+
+== Read fate breakdown ==
+Pairs that were too short:                   0 (0.0%)
+Pairs written (passing filters):       192,775 (86.9%)
+
+Total basepairs processed:   133,554,904 bp
+  Read 1:    66,777,452 bp
+  Read 2:    66,777,452 bp
+Quality-trimmed:                       0 bp (0.0%)
+  Read 1:             0 bp
+  Read 2:             0 bp
+Total written (filtered):    107,959,195 bp (80.8%)
+  Read 1:    53,979,970 bp
+  Read 2:    53,979,225 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: CCTACGGGNGGCWGCAG; Type: regular 5'; Length: 17; Trimmed: 221528 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-16 bp: 1
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	6	3466.4	0	6
+4	1	866.6	0	1
+12	1	0.0	1	1
+13	1	0.0	1	1
+14	2	0.0	1	2
+15	5	0.0	1	5
+16	10	0.0	1	8 2
+17	12	0.0	1	11 1
+18	42	0.0	1	38 4
+19	148	0.0	1	104 44
+20	2912	0.0	1	1039 1873
+21	218213	0.0	1	216599 1614
+22	171	0.0	1	63 108
+24	4	0.0	1	3 1
+
+
+=== Second read: Adapter 2 ===
+
+Sequence: GACTACHVGGGTATCTAATCC; Type: regular 5'; Length: 21; Trimmed: 193038 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-19 bp: 1; 20-21 bp: 2
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	10	3466.4	0	10
+13	1	0.0	1	0 1
+15	4	0.0	1	0 4
+16	11	0.0	1	1 10
+17	29	0.0	1	20 9
+18	65	0.0	1	1 64
+19	168	0.0	1	8 6 154
+20	1431	0.0	2	89 1260 82
+21	191202	0.0	2	188149 2713 340
+22	117	0.0	2	16 95 6
+This is cutadapt 4.9 with Python 3.10.14
+Command line parameters: --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/E_mock2_9_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/E_mock2_19_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/E_mock2_9_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/E_mock2_19_L001_R2_001.fastq.gz
+Processing paired-end reads on 16 cores ...
+Finished in 2.067 s (5.699 µs/read; 10.53 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:            362,606
+  Read 1 with adapter:                 361,355 (99.7%)
+  Read 2 with adapter:                 323,098 (89.1%)
+
+== Read fate breakdown ==
+Pairs that were too short:                   0 (0.0%)
+Pairs written (passing filters):       322,101 (88.8%)
+
+Total basepairs processed:   218,288,812 bp
+  Read 1:   109,144,406 bp
+  Read 2:   109,144,406 bp
+Quality-trimmed:                       0 bp (0.0%)
+  Read 1:             0 bp
+  Read 2:             0 bp
+Total written (filtered):    180,385,242 bp (82.6%)
+  Read 1:    90,193,946 bp
+  Read 2:    90,191,296 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: CCTACGGGNGGCWGCAG; Type: regular 5'; Length: 17; Trimmed: 361355 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-16 bp: 1
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	26	5665.7	0	26
+4	4	1416.4	0	4
+7	1	22.1	0	1
+11	1	0.1	1	0 1
+12	3	0.0	1	2 1
+13	7	0.0	1	5 2
+14	32	0.0	1	29 3
+15	19	0.0	1	13 6
+16	28	0.0	1	19 9
+17	66	0.0	1	46 20
+18	108	0.0	1	76 32
+19	218	0.0	1	155 63
+20	4625	0.0	1	1392 3233
+21	355895	0.0	1	352957 2938
+22	299	0.0	1	98 201
+24	23	0.0	1	22 1
+
+
+=== Second read: Adapter 2 ===
+
+Sequence: GACTACHVGGGTATCTAATCC; Type: regular 5'; Length: 21; Trimmed: 323098 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-19 bp: 1; 20-21 bp: 2
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	18	5665.7	0	18
+6	1	88.5	0	1
+9	1	1.4	0	0 1
+14	5	0.0	1	4 1
+15	2	0.0	1	0 2
+16	13	0.0	1	2 11
+17	25	0.0	1	17 8
+18	64	0.0	1	10 54
+19	207	0.0	1	19 8 180
+20	2068	0.0	2	115 1760 193
+21	320524	0.0	2	315854 4136 534
+22	169	0.0	2	12 133 24
+39	1	0.0	2	1
+This is cutadapt 4.9 with Python 3.10.14
+Command line parameters: --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/E_mock3_8_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/E_mock3_18_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/E_mock3_8_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/E_mock3_18_L001_R2_001.fastq.gz
+Processing paired-end reads on 16 cores ...
+Finished in 1.406 s (5.857 µs/read; 10.24 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:            240,033
+  Read 1 with adapter:                 238,992 (99.6%)
+  Read 2 with adapter:                 203,740 (84.9%)
+
+== Read fate breakdown ==
+Pairs that were too short:                   0 (0.0%)
+Pairs written (passing filters):       202,866 (84.5%)
+
+Total basepairs processed:   144,499,866 bp
+  Read 1:    72,249,933 bp
+  Read 2:    72,249,933 bp
+Quality-trimmed:                       0 bp (0.0%)
+  Read 1:             0 bp
+  Read 2:             0 bp
+Total written (filtered):    113,612,182 bp (78.6%)
+  Read 1:    56,806,547 bp
+  Read 2:    56,805,635 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: CCTACGGGNGGCWGCAG; Type: regular 5'; Length: 17; Trimmed: 238992 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-16 bp: 1
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	10	3750.5	0	10
+4	3	937.6	0	3
+7	1	14.7	0	1
+8	1	3.7	0	1
+11	2	0.1	1	2
+13	1	0.0	1	0 1
+14	87	0.0	1	82 5
+15	36	0.0	1	31 5
+16	29	0.0	1	21 8
+17	72	0.0	1	60 12
+18	162	0.0	1	135 27
+19	278	0.0	1	222 56
+20	2641	0.0	1	859 1782
+21	235357	0.0	1	233513 1844
+22	291	0.0	1	87 204
+23	1	0.0	1	1
+24	20	0.0	1	19 1
+
+
+=== Second read: Adapter 2 ===
+
+Sequence: GACTACHVGGGTATCTAATCC; Type: regular 5'; Length: 21; Trimmed: 203740 times
+
+Minimum overlap: 3
+No. of allowed errors:
+1-9 bp: 0; 10-19 bp: 1; 20-21 bp: 2
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+3	93	3750.5	0	93
+4	2	937.6	0	2
+6	4	58.6	0	4
+12	1	0.0	1	1
+13	3	0.0	1	2 1
+14	7	0.0	1	4 3
+15	10	0.0	1	4 6
+16	11	0.0	1	1 10
+17	22	0.0	1	15 7
+18	44	0.0	1	6 38
+19	116	0.0	1	4 1 111
+20	948	0.0	2	40 672 236
+21	202300	0.0	2	149133 46535 6632
+22	177	0.0	2	9 129 39
+24	1	0.0	2	1
+45	1	0.0	2	1
+Running external command line application. This may print messages to stdout and/or stderr.
+The commands to be run are below. These commands cannot be manually re-run as they will depend on temporary files that no longer exist.
+
+Command: cutadapt --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/A_ZY1_0_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/A_ZY1_10_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/A_ZY1_0_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/A_ZY1_10_L001_R2_001.fastq.gz
+
+
+Command: cutadapt --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/A_ZY2_1_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/A_ZY2_11_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/A_ZY2_1_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/A_ZY2_11_L001_R2_001.fastq.gz
+
+
+Command: cutadapt --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock4_2_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock4_12_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock4_2_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock4_12_L001_R2_001.fastq.gz
+
+
+Command: cutadapt --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock5_3_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock5_13_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock5_3_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock5_13_L001_R2_001.fastq.gz
+
+
+Command: cutadapt --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock6_4_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock6_14_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock6_4_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock6_14_L001_R2_001.fastq.gz
+
+
+Command: cutadapt --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock7_5_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock7_15_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock7_5_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock7_15_L001_R2_001.fastq.gz
+
+
+Command: cutadapt --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock8_6_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/D_mock8_16_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock8_6_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/D_mock8_16_L001_R2_001.fastq.gz
+
+
+Command: cutadapt --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/E_mock1_7_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/E_mock1_17_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/E_mock1_7_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/E_mock1_17_L001_R2_001.fastq.gz
+
+
+Command: cutadapt --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/E_mock2_9_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/E_mock2_19_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/E_mock2_9_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/E_mock2_19_L001_R2_001.fastq.gz
+
+
+Command: cutadapt --cores 16 --error-rate 0.1 --times 1 --overlap 3 --minimum-length 1 -q 0,0 --quality-base 33 -o /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/E_mock3_8_L001_R1_001.fastq.gz -p /tmp/qiime2/mijail/processes/101086-1794429991.04@mijail/tmp/q2-OutPath-idvvjmu2/E_mock3_18_L001_R2_001.fastq.gz --front CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC --discard-untrimmed /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/E_mock3_8_L001_R1_001.fastq.gz /tmp/qiime2/mijail/data/d61f904d-d8f3-41d2-b14a-11c9fad64c59/data/E_mock3_18_L001_R2_001.fastq.gz
+
+Saved SampleData[PairedEndSequencesWithQuality] to: /data/validation_independent_mocks_20261111/outputs/qiime2/demux_trimmed.qza
+[Wed Nov 11 20:47:13 UTC 2026] 3/5 dada2 denoise-paired
+R version 4.3.3 (2024-02-29) 
+Loading required package: Rcpp
+DADA2: 1.30.0 / Rcpp: 1.1.1 / RcppParallel: 5.1.9 
+2) Filtering ..........
+3) Learning Error Rates
+325678080 total bases in 1163136 reads from 8 samples will be used for learning the error rates.
+255889920 total bases in 1163136 reads from 8 samples will be used for learning the error rates.
+3) Denoise samples ..........
+..........
+5) Remove chimeras (method = consensus)
+6) Report read numbers through the pipeline
+7) Write output
+Running external command line application(s). This may print messages to stdout and/or stderr.
+The command(s) being run are below. These commands cannot be manually re-run as they will depend on temporary files that no longer exist.
+
+Command: run_dada.R --input_directory /tmp/tmp034m61h8/forward --input_directory_reverse /tmp/tmp034m61h8/reverse --output_path /tmp/tmp034m61h8/output.tsv.biom --output_track /tmp/tmp034m61h8/track.tsv --filtered_directory /tmp/tmp034m61h8/filt_f --filtered_directory_reverse /tmp/tmp034m61h8/filt_r --truncation_length 280 --truncation_length_reverse 220 --trim_left 0 --trim_left_reverse 0 --max_expected_errors 2.0 --max_expected_errors_reverse 2.0 --truncation_quality_score 2 --min_overlap 12 --pooling_method independent --chimera_method consensus --min_parental_fold 1.0 --allow_one_off False --num_threads 16 --learn_min_reads 1000000
+
+Saved FeatureTable[Frequency] to: /data/validation_independent_mocks_20261111/outputs/qiime2/table.qza
+Saved FeatureData[Sequence] to: /data/validation_independent_mocks_20261111/outputs/qiime2/rep-seqs.qza
+Saved SampleData[DADA2Stats] to: /data/validation_independent_mocks_20261111/outputs/qiime2/stats.qza
+[Wed Nov 11 21:20:24 UTC 2026] 4/5 classify-sklearn
+Saved FeatureData[Taxonomy] to: /data/validation_independent_mocks_20261111/outputs/qiime2/taxonomy.qza
+[Wed Nov 11 21:25:57 UTC 2026] 5/5 export
+Exported /data/validation_independent_mocks_20261111/outputs/qiime2/table.qza as BIOMV210DirFmt to directory /data/validation_independent_mocks_20261111/outputs/qiime2/table_export
+Exported /data/validation_independent_mocks_20261111/outputs/qiime2/taxonomy.qza as TSVTaxonomyDirectoryFormat to directory /data/validation_independent_mocks_20261111/outputs/qiime2/taxonomy_export
+Exported /data/validation_independent_mocks_20261111/outputs/qiime2/rep-seqs.qza as DNASequencesDirectoryFormat to directory /data/validation_independent_mocks_20261111/outputs/qiime2/repseqs_export
+[Wed Nov 11 21:26:22 UTC 2026] DONE
