@@ -1,0 +1,11 @@
+sample-id	forward-absolute-filepath	reverse-absolute-filepath
+A_ZY1	/data/validation_independent_mocks_20261111/raw/SRR27790137_1.fastq.gz	/data/validation_independent_mocks_20261111/raw/SRR27790137_2.fastq.gz
+A_ZY2	/data/validation_independent_mocks_20261111/raw/SRR27790136_1.fastq.gz	/data/validation_independent_mocks_20261111/raw/SRR27790136_2.fastq.gz
+D_mock4	/data/validation_independent_mocks_20261111/raw/ERR14820732_1.fastq.gz	/data/validation_independent_mocks_20261111/raw/ERR14820732_2.fastq.gz
+D_mock5	/data/validation_independent_mocks_20261111/raw/ERR14820828_1.fastq.gz	/data/validation_independent_mocks_20261111/raw/ERR14820828_2.fastq.gz
+D_mock6	/data/validation_independent_mocks_20261111/raw/ERR14820924_1.fastq.gz	/data/validation_independent_mocks_20261111/raw/ERR14820924_2.fastq.gz
+D_mock7	/data/validation_independent_mocks_20261111/raw/ERR14821020_1.fastq.gz	/data/validation_independent_mocks_20261111/raw/ERR14821020_2.fastq.gz
+D_mock8	/data/validation_independent_mocks_20261111/raw/ERR14821116_1.fastq.gz	/data/validation_independent_mocks_20261111/raw/ERR14821116_2.fastq.gz
+E_mock1	/data/validation_independent_mocks_20261111/raw/SRR16997123_1.fastq.gz	/data/validation_independent_mocks_20261111/raw/SRR16997123_2.fastq.gz
+E_mock3	/data/validation_independent_mocks_20261111/raw/SRR16997307_1.fastq.gz	/data/validation_independent_mocks_20261111/raw/SRR16997307_2.fastq.gz
+E_mock2	/data/validation_independent_mocks_20261111/raw/SRR16997311_1.fastq.gz	/data/validation_independent_mocks_20261111/raw/SRR16997311_2.fastq.gz

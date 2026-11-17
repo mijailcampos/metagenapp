@@ -1,0 +1,1 @@
+12 nov 2026: corrida con min_overlap = longitud completa del primer (estricto). Sustituida por posthoc_primerfix (min_overlap = len - floor(0.1 len)). Las rutas dentro de los scripts de esta carpeta apuntan al nombre original posthoc_primerfix.

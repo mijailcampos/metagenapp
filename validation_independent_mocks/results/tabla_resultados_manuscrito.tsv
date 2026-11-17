@@ -1,0 +1,21 @@
+herramienta	conj	n	pares_crudos	lect_finales	retencion_%	ret_min-max_%	BC_pool	BC_rep_media	BC_rep_SD	inesperado_%	generos_todas
+MetagenApp v1.1 (prereg.)	A	2	229305	12961	5.7	5.6-5.7	0.090	0.090	0.006	0.09	8/8
+MetagenApp v1.1 (prereg.)	D	5	1166826	90	0.0	0.0-0.0	0.158	0.325	0.091	1.11	2/8
+MetagenApp v1.1 (prereg.)	E	3	824491	204	0.0	0.0-0.0	0.200	0.250	0.076	0.00	6/8
+MetagenApp v1.1 (prereg.)	GLOBAL	10	2220622	13255	0.6		0.092			0.10	
+mothur (prereg.)	A	2	229305	108118	47.2	46.8-47.5	0.110	0.110	0.002	2.06	8/8
+mothur (prereg.)	D	5	1166826	472781	40.5	35.3-45.9	0.216	0.217	0.020	5.53	8/8
+mothur (prereg.)	E	3	824491	378789	45.9	39.4-48.4	0.211	0.219	0.034	4.26	8/8
+mothur (prereg.)	GLOBAL	10	2220622	959688	43.2		0.202			4.64	
+QIIME 2 principal (prereg.)	A	2	229305	86905	37.9	37.4-38.4	0.191	0.192	0.001	12.27	7/8
+QIIME 2 principal (prereg.)	D	5	1166826	328787	28.2	25.3-32.3	0.278	0.279	0.016	16.13	7/8
+QIIME 2 principal (prereg.)	E	3	824491	277964	33.7	27.8-36.8	0.292	0.302	0.047	16.81	7/8
+QIIME 2 principal (prereg.)	GLOBAL	10	2220622	693656	31.2		0.267			15.92	
+QIIME 2 secundario Sal (prereg.)	A	2	229305	86905	37.9	37.4-38.4	0.087	0.088	0.001	0.02	8/8
+QIIME 2 secundario Sal (prereg.)	D	5	1166826	328787	28.2	25.3-32.3	0.174	0.175	0.016	0.19	8/8
+QIIME 2 secundario Sal (prereg.)	E	3	824491	277964	33.7	27.8-36.8	0.188	0.198	0.047	0.99	8/8
+QIIME 2 secundario Sal (prereg.)	GLOBAL	10	2220622	693656	31.2		0.163			0.49	
+MetagenApp corregido (post hoc)	A	2	229305	98658	43.0	42.8-43.3	0.101	0.101	0.002	2.40	8/8
+MetagenApp corregido (post hoc)	D	5	1166826	392295	33.6	26.8-41.2	0.191	0.194	0.024	4.68	8/8
+MetagenApp corregido (post hoc)	E	3	824491	377255	45.8	40.8-47.8	0.202	0.210	0.033	4.38	8/8
+MetagenApp corregido (post hoc)	GLOBAL	10	2220622	868208	39.1		0.185			4.29	

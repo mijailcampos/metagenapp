@@ -1,0 +1,17 @@
+  A_ZY1_S1_L001      lecturas   47784 OTUs  160 generos 8/8  inesperado  1.53%  BC 0.099
+  A_ZY2_S2_L001      lecturas   49991 OTUs  169 generos 8/8  inesperado  1.97%  BC 0.097
+  D_mock4_S3_L001    lecturas   90570 OTUs  236 generos 8/8  inesperado  5.66%  BC 0.195
+  D_mock5_S4_L001    lecturas   93490 OTUs  235 generos 8/8  inesperado  4.56%  BC 0.150
+  D_mock6_S5_L001    lecturas  100995 OTUs  233 generos 8/8  inesperado  4.78%  BC 0.223
+  D_mock7_S6_L001    lecturas   59933 OTUs  234 generos 8/8  inesperado  4.41%  BC 0.190
+  D_mock8_S7_L001    lecturas   48037 OTUs  231 generos 8/8  inesperado  4.70%  BC 0.207
+  E_mock1_S8_L001    lecturas   91541 OTUs  279 generos 8/8  inesperado  6.34%  BC 0.230
+  E_mock2_S10_L001   lecturas  172906 OTUs  295 generos 8/8  inesperado  3.52%  BC 0.167
+  E_mock3_S9_L001    lecturas  113529 OTUs  275 generos 8/8  inesperado  3.68%  BC 0.226
+Conjunto A: n=2 BC_pool 0.098  BC_rep 0.098+-0.002  inesperado 1.76%  generos_todas 8/8
+Conjunto D: n=5 BC_pool 0.191  BC_rep 0.193+-0.027  inesperado 4.86%  generos_todas 8/8
+Conjunto E: n=3 BC_pool 0.200  BC_rep 0.208+-0.035  inesperado 4.25%  generos_todas 8/8
+GLOBAL BC_pool 0.185 inesperado 4.25%
+A {'Bacillus': 19.95, 'Limosilactobacillus': 13.81, 'Escherichia-Shigella': 13.14, 'Staphylococcus': 13.07, 'Salmonella': 12.81, 'Listeria': 12.69, 'Enterococcus': 8.8, 'Pseudomonas': 3.96, 'Unclassified': 1.74, 'Delftia': 0.01}
+D {'Bacillus': 19.41, 'Salmonella': 16.46, 'Escherichia-Shigella': 16.26, 'Staphylococcus': 15.14, 'Limosilactobacillus': 9.78, 'Listeria': 8.43, 'Enterococcus': 7.49, 'Unclassified': 4.74, 'Pseudomonas': 2.16, 'Muribaculaceae (incertae sedis)': 0.06}
+E {'Bacillus': 22.06, 'Salmonella': 16.04, 'Escherichia-Shigella': 15.58, 'Staphylococcus': 14.38, 'Listeria': 9.22, 'Limosilactobacillus': 8.62, 'Enterococcus': 7.6, 'Unclassified': 3.77, 'Pseudomonas': 2.25, 'Muribaculaceae (incertae sedis)': 0.24}
